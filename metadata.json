@@ -1,0 +1,6 @@
+{
+  "name": "Chinamati",
+  "description": "A premium, dark-mode-enhanced shop for cheap, daily-use electronics, kitchen gadgets, and home items, with streamlined order processing, background account generation, elegant receipts, and an advanced admin dashboard with live Supabase synchronization.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -69,7 +69,7 @@ export default function OrderModal({
 
       const tran_id = `TRAN_${Date.now()}`;
       
-      fetch('http://localhost:5000/api/ssl-request', {
+      fetch('/api/ssl-request', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

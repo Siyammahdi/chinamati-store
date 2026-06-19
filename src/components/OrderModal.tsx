@@ -90,7 +90,10 @@ export default function OrderModal({
           product_profile: 'general'
         }),
       })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Backend not available');
+        return res.json();
+      })
       .then(data => {
         if (data.url) {
           // Save order details to localStorage before redirecting
@@ -114,8 +117,36 @@ export default function OrderModal({
       })
       .catch(err => {
         console.error('SSL Request Error:', err);
-        setError('Connection error to payment gateway. Please try again.');
-        setIsProcessingPayment(false);
+        
+        // Fallback to simulated payment for testing when backend is not available
+        if (confirm('Backend server not available. Use simulated payment for testing?')) {
+          // Simulate SSLCommerz redirect
+          localStorage.setItem('pending_order', JSON.stringify({
+            name,
+            email,
+            phone,
+            district: deliveryArea === 'inside' ? 'Inside Dhaka' : district,
+            address,
+            productId: product.id,
+            quantity,
+            paymentMethod,
+            tran_id
+          }));
+          
+          // Simulate successful payment after 2 seconds
+          setTimeout(() => {
+            const pendingOrder = localStorage.getItem('pending_order');
+            if (pendingOrder) {
+              const orderData = JSON.parse(pendingOrder);
+              localStorage.removeItem('pending_order');
+              // Redirect to success URL with tran_id
+              window.location.href = `${window.location.origin}/payment-success?tran_id=${orderData.tran_id}`;
+            }
+          }, 2000);
+        } else {
+          setError('Backend server not available. Please try again later or use Cash on Delivery.');
+          setIsProcessingPayment(false);
+        }
       });
     } else {
       processFinalOrder();

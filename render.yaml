@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: chinamati-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: SSL_STORE_ID
+        fromDatabase:
+          name: chinamati-env
+          property: SSL_STORE_ID
+      - key: SSL_STORE_PASSWORD
+        fromDatabase:
+          name: chinamati-env
+          property: SSL_STORE_PASSWORD
+      - key: SSL_IS_SANDBOX
+        fromDatabase:
+          name: chinamati-env
+          property: SSL_IS_SANDBOX
+      - key: FRONTEND_URL
+        fromDatabase:
+          name: chinamati-env
+          property: FRONTEND_URL
+      - key: BACKEND_URL
+        fromDatabase:
+          name: chinamati-env
+          property: BACKEND_URL

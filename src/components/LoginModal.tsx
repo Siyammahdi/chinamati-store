@@ -204,7 +204,7 @@ export default function LoginModal({
         </div>
 
         {/* Shortcut Quick Fills — Only show in login mode to prevent cluttering registration */}
-        {!isRegisterMode && (
+        {/* {!isRegisterMode && (
           <div className="px-6 pt-4 pb-1 space-y-2">
             <span className="text-[9px] font-bold text-slate-400 font-mono uppercase tracking-widest block">Task Fillers Shortcut:</span>
             <div className="grid grid-cols-2 gap-2">
@@ -229,7 +229,7 @@ export default function LoginModal({
               </button>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Global Feedback Notifications */}
         <div className="px-6 pt-4">

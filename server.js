@@ -7,7 +7,6 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -16,6 +15,12 @@ const SSL_STORE_PASSWORD = process.env.SSL_STORE_PASSWORD;
 const SSL_IS_SANDBOX = process.env.SSL_IS_SANDBOX === 'true';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://chinamati.com';
 const BACKEND_URL = process.env.BACKEND_URL || 'https://chinamati.com';
+
+// Configure CORS to allow requests from frontend
+app.use(cors({
+  origin: [FRONTEND_URL, 'http://localhost:3000'],
+  credentials: true,
+}));
 
 const SSL_API_URL = SSL_IS_SANDBOX 
   ? 'https://sandbox.sslcommerz.com/gwprocess/v4/api.php' 

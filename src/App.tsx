@@ -452,7 +452,7 @@ export default function App() {
                   <TrustPillars />
 
                   {/* DTC Factory Price Spotlight Campaign */}
-                  <DTCSpotlight onExplore={handleScrollToProducts} />
+                  {/* <DTCSpotlight onExplore={handleScrollToProducts} /> */}
                 </div>
               )}
 

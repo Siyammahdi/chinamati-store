@@ -4,7 +4,7 @@ import { DB } from '../lib/db';
 import { 
   ShieldAlert, ShoppingBag, ClipboardList, Users, Settings, 
   Search, Plus, Trash2, Edit, FileText, MapPin, Tag, Star,
-  Database, CloudLightning, RefreshCw, Upload, Download, Copy, Check, MessageSquare
+  Database, CloudLightning, RefreshCw, Upload, Download, Copy, Check, MessageSquare, Mail
 } from 'lucide-react';
 import { isSupabaseConfigured, pullFromSupabase, pushToSupabase } from '../lib/supabase';
 import InvoiceView from './InvoiceView';

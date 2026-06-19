@@ -18,9 +18,21 @@ const BACKEND_URL = process.env.BACKEND_URL || 'https://chinamati.com';
 
 // Configure CORS to allow requests from frontend
 app.use(cors({
-  origin: [FRONTEND_URL, 'http://localhost:3000'],
+  origin: [
+    FRONTEND_URL, 
+    'http://localhost:3000',
+    'https://www.chinamati.com',
+    'https://chinamati.com'
+  ],
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
+
+// Handle OPTIONS requests explicitly
+app.options('*', cors());
 
 const SSL_API_URL = SSL_IS_SANDBOX 
   ? 'https://sandbox.sslcommerz.com/gwprocess/v4/api.php' 

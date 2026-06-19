@@ -1,7 +1,8 @@
 import { ArrowLeft, Star, Zap, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, X, Maximize2 } from 'lucide-react';
 import { useState } from 'react';
-import { Product } from '../types';
+import { Product, ProductReview } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
+import { DB } from '../lib/db';
 
 interface ProductDetailsPageProps {
   product: Product;
@@ -115,9 +116,15 @@ const CLIENT_REVIEW_PHOTOS_MAP: Record<string, string[]> = {
   ]
 };
 
-const getProductImages = (productId: string, defaultImage: string): string[] => {
-  return PRODUCT_IMAGES_MAP[productId] || [
-    defaultImage,
+const getProductImages = (product: Product): string[] => {
+  if (product.subImages && Array.isArray(product.subImages) && product.subImages.length > 0) {
+    const validSubs = product.subImages.filter(img => img && img.trim() !== '');
+    if (validSubs.length > 0) {
+      return [product.imageUrl, ...validSubs];
+    }
+  }
+  return PRODUCT_IMAGES_MAP[product.id] || [
+    product.imageUrl,
     'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&q=80&w=1000',
     'https://images.unsplash.com/photo-1468436139062-f60a71c5c892?auto=format&fit=crop&q=80&w=1000',
     'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=1000'
@@ -142,7 +149,7 @@ export default function ProductDetailsPage({
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
   // Stateful photo selection gallery
-  const productImages = getProductImages(product.id, product.imageUrl);
+  const productImages = getProductImages(product);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const selectedImage = productImages[selectedImageIndex];
 
@@ -197,30 +204,16 @@ export default function ProductDetailsPage({
     }
   ];
 
-  // Minimal and consistent reviews list without distracting buyer badges or social evaluation buttons
-  const reviews = [
-    {
-      reviewer: "Adnan Chowdhury",
-      location: "Dhanmondi, Dhaka",
-      date: "2 weeks ago",
-      rating: 5,
-      text: "The build quality feels remarkably premium and heavier than typical generic hardware alternatives. Meticulously engineered chassis, highly responsive interface dials, and outstanding temperature insulation. Genuinely worth every Taka."
-    },
-    {
-      reviewer: "Tasnuva Jahan",
-      location: "Halishahar, Chittagong",
-      date: "3 days ago",
-      rating: 5,
-      text: "Remarkably minimal design that fits cleanly into my workspace. The capsule arrived double-wrapped and sealed. Smooth direct shipping and delivery updates with immediate feedback. Highly recommend the studio edition."
-    },
-    {
-      reviewer: "Sajid Mashroo",
-      location: "Uposhohor, Sylhet",
-      date: "Last month",
-      rating: 4,
-      text: "Immensely solid structure and reliable performance. Exactly as described in the technical specifications, works instantly right out of the retail packaging box."
+  // Dynamically load reviews and review images from the DB for this product
+  const reviews = DB.getReviewsForProduct(product.id);
+
+  const reviewImages = reviews.reduce((acc: string[], rev) => {
+    if (rev.imageUrls && Array.isArray(rev.imageUrls)) {
+      return [...acc, ...rev.imageUrls.filter(url => url && url.trim() !== '')];
     }
-  ];
+    return acc;
+  }, []);
+  const activeReviewImages = reviewImages.length > 0 ? reviewImages : getClientReviewPhotos(product.id);
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-16" id={`details-page-${product.id}`}>
@@ -463,7 +456,7 @@ export default function ProductDetailsPage({
             Real Customer Shared Shots
           </p>
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-            {getClientReviewPhotos(product.id).map((imgUrl, idx, arr) => (
+            {activeReviewImages.map((imgUrl, idx, arr) => (
               <button
                 key={idx}
                 type="button"

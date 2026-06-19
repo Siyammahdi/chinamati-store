@@ -11,6 +11,7 @@ export interface Product {
   specs: string[]; // Specs lists
   category: Category;
   stock: number;
+  subImages?: string[]; // Optional sub-image gallery URLs (up to 4)
 }
 
 export interface User {
@@ -64,3 +65,16 @@ export interface Invoice {
   paymentMethod: 'cod' | 'sslcommerz';
   paymentStatus: 'Pending' | 'Paid';
 }
+
+export interface ProductReview {
+  id: string;
+  productId: string;
+  reviewer: string;
+  location: string;
+  date: string;
+  rating: number;
+  text: string;
+  imageUrls: string[];
+  createdAt: string;
+}
+

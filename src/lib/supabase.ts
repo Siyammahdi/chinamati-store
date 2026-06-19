@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Product, User, Order } from '../types';
+import { Product, User, Order, ProductReview } from '../types';
 
 const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = (import.meta as any).env.VITE_SUPABASE_ANON_KEY || '';
@@ -44,6 +44,11 @@ export async function pullFromSupabase(): Promise<{ success: boolean; message: s
         specs: typeof p.specs === 'string' ? JSON.parse(p.specs) : p.specs || [],
         category: p.category,
         stock: Number(p.stock),
+        subImages: p.sub_images 
+          ? (typeof p.sub_images === 'string' 
+              ? (p.sub_images.startsWith('[') ? JSON.parse(p.sub_images) : [p.sub_images]) 
+              : p.sub_images)
+          : []
       }));
       localStorage.setItem('gs_products', JSON.stringify(parsedProducts));
     }
@@ -96,9 +101,38 @@ export async function pullFromSupabase(): Promise<{ success: boolean; message: s
       localStorage.setItem('gs_orders', JSON.stringify(parsedOrders));
     }
 
+    // 4. Pull Reviews
+    let pulledReviewsCount = 0;
+    try {
+      const { data: dbReviews, error: revError } = await supabase
+        .from('reviews')
+        .select('*');
+      if (!revError && dbReviews && dbReviews.length > 0) {
+        const parsedReviews = dbReviews.map((r: any) => ({
+          id: r.id,
+          productId: r.product_id,
+          reviewer: r.reviewer_name,
+          location: r.location || '',
+          date: r.date_text || '',
+          rating: Number(r.rating || 5),
+          text: r.comment || '',
+          imageUrls: r.image_urls 
+            ? (typeof r.image_urls === 'string' 
+                ? (r.image_urls.startsWith('[') ? JSON.parse(r.image_urls) : [r.image_urls]) 
+                : r.image_urls)
+            : [],
+          createdAt: r.created_at || new Date().toISOString()
+        }));
+        localStorage.setItem('gs_reviews', JSON.stringify(parsedReviews));
+        pulledReviewsCount = dbReviews.length;
+      }
+    } catch (e) {
+      console.warn('Reviews table not yet created in Supabase (optional):', e);
+    }
+
     return { 
       success: true, 
-      message: `Successfully loaded ${dbProducts?.length || 0} Products, ${dbUsers?.length || 0} Users, and ${dbOrders?.length || 0} Orders from Supabase Cloud.` 
+      message: `Successfully loaded ${dbProducts?.length || 0} Products, ${dbUsers?.length || 0} Users, ${dbOrders?.length || 0} Orders, and ${pulledReviewsCount} Reviews from Supabase Cloud.` 
     };
   } catch (error: any) {
     console.error('Failed to pull schema/data from Supabase:', error);
@@ -129,7 +163,8 @@ export async function pushToSupabase(): Promise<{ success: boolean; message: str
         reviews_count: p.reviewsCount,
         specs: JSON.stringify(p.specs),
         category: p.category,
-        stock: p.stock
+        stock: p.stock,
+        sub_images: p.subImages ? JSON.stringify(p.subImages) : '[]'
       }));
 
       const { error: prodError } = await supabase.from('products').upsert(payload, { onConflict: 'id' });
@@ -178,9 +213,36 @@ export async function pushToSupabase(): Promise<{ success: boolean; message: str
       if (orderError) throw orderError;
     }
 
+    // 4. Push Reviews
+    let pushedReviewsCount = 0;
+    try {
+      const localReviews = JSON.parse(localStorage.getItem('gs_reviews') || '[]');
+      if (localReviews.length > 0) {
+        const payload = localReviews.map((r: ProductReview) => ({
+          id: r.id,
+          product_id: r.productId,
+          reviewer_name: r.reviewer,
+          location: r.location,
+          date_text: r.date,
+          rating: r.rating,
+          comment: r.text,
+          image_urls: r.imageUrls ? JSON.stringify(r.imageUrls) : '[]',
+          created_at: r.createdAt
+        }));
+        const { error: revError } = await supabase.from('reviews').upsert(payload, { onConflict: 'id' });
+        if (!revError) {
+          pushedReviewsCount = localReviews.length;
+        } else {
+          console.warn('Silent warning - Reviews table migration failed:', revError);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to push reviews to Supabase (reviews table may not exist yet):', e);
+    }
+
     return { 
       success: true, 
-      message: `Successfully back-seeded ${localProducts.length} Products, ${localUsers.length} Users, and ${localOrders.length} Orders to Supabase.` 
+      message: `Successfully back-seeded ${localProducts.length} Products, ${localUsers.length} Users, ${localOrders.length} Orders, and ${pushedReviewsCount} Reviews to Supabase.` 
     };
   } catch (error: any) {
     console.error('Failed to push schema/data to Supabase:', error);
@@ -202,7 +264,8 @@ export async function syncProductUpsert(product: Product): Promise<{ success: bo
       reviews_count: product.reviewsCount,
       specs: JSON.stringify(product.specs),
       category: product.category,
-      stock: product.stock
+      stock: product.stock,
+      sub_images: product.subImages ? JSON.stringify(product.subImages) : '[]'
     }, { onConflict: 'id' });
     if (error) {
       console.error('Supabase Product Upsert Error:', error);
@@ -342,3 +405,44 @@ export async function syncOrderDelete(orderId: string): Promise<{ success: boole
     return { success: false, error: e };
   }
 }
+
+export async function syncReviewUpsert(review: ProductReview): Promise<{ success: boolean; error?: any }> {
+  if (!supabase) return { success: true };
+  try {
+    const { error } = await supabase.from('reviews').upsert({
+      id: review.id,
+      product_id: review.productId,
+      reviewer_name: review.reviewer,
+      location: review.location,
+      date_text: review.date,
+      rating: review.rating,
+      comment: review.text,
+      image_urls: JSON.stringify(review.imageUrls),
+      created_at: review.createdAt
+    }, { onConflict: 'id' });
+    if (error) {
+      console.error('Supabase Review Upsert Error:', error);
+      return { success: false, error };
+    }
+    return { success: true };
+  } catch (e: any) {
+    console.warn('Silent Supabase Background Error:', e);
+    return { success: false, error: e };
+  }
+}
+
+export async function syncReviewDelete(reviewId: string): Promise<{ success: boolean; error?: any }> {
+  if (!supabase) return { success: true };
+  try {
+    const { error } = await supabase.from('reviews').delete().eq('id', reviewId);
+    if (error) {
+      console.error('Supabase Review Delete Error:', error);
+      return { success: false, error };
+    }
+    return { success: true };
+  } catch (e: any) {
+    console.warn('Silent Supabase Background Error:', e);
+    return { success: false, error: e };
+  }
+}
+

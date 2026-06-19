@@ -69,17 +69,17 @@ export default function Hero({ onScrollToProducts, onViewProduct }: HeroProps) {
                 </span>
               </h1>
               <p className="text-slate-400 text-sm sm:text-base leading-relaxed max-w-lg font-sans">
-                Step away from cluttered retail layouts. Discover the smart temperature insulated flask—meticulously engineered with active OLED display feedback, multi-layer vacuum insulation, and medical-grade materials.
+                A powerful, compact, wireless food processor. Chopping ingredients is now faster and easier with just a single key click. Great for garlic, ginger, pepper, onion, vegetables, and small meats.
               </p>
             </div>
 
             {/* Direct primary checkout CTA */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-3">
               <button
-                onClick={() => onViewProduct?.('prod-5')}
+                onClick={() => onViewProduct?.('prod-iw9f8')}
                 className="group px-8 py-4 bg-white hover:bg-slate-100 text-slate-950 font-bold text-xs tracking-widest uppercase rounded-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2.5 shadow-[0_4px_24px_rgba(255,255,255,0.08)] font-mono"
               >
-                <span>View Smart Bottle</span>
+                <span>View Electronic Scale</span>
                 <ArrowRight className="h-4.5 w-4.5 text-slate-950 transition-transform duration-300 group-hover:translate-x-1" />
               </button>
               
@@ -133,10 +133,10 @@ export default function Hero({ onScrollToProducts, onViewProduct }: HeroProps) {
 
             {/* THE FLAGSHIP GADGET */}
             <div 
-              onClick={() => onViewProduct?.('prod-5')}
+              onClick={() => onViewProduct?.('prod-iw9f8')}
               className="relative z-20 cursor-pointer group transition-all duration-500"
               style={{ animation: 'float-subtle 5s infinite ease-in-out' }}
-              title="Click to view smart bottle details"
+              title="Click to view garlic chopper details"
             >
               {/* Product main shadow overlay */}
               <div className="relative">
@@ -148,21 +148,21 @@ export default function Hero({ onScrollToProducts, onViewProduct }: HeroProps) {
 
                 {/* Main Product Image with subtle 3D lighting feel */}
                 <img
-                  src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&q=80&w=450"
-                  alt="Stainless Steel Smart Temp Bottle Studio Edition"
+                  src="https://res.cloudinary.com/dttbj6a0m/image/upload/v1778881324/file_00000000f77471faac1106016103d10b_rvbw8r.png"
+                  alt="USB Rechargeable Electric Garlic Chopper"
                   referrerPolicy="no-referrer"
-                  className="w-40 sm:w-48 h-auto object-contain relative z-10 transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                  className="w-40 sm:w-48 h-auto rounded-2xl object-contain relative z-10 transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                 />
 
                 {/* Absolute minimal spec tag badge - clean glassmorphism */}
                 <div className="absolute top-2 -right-12 z-25 bg-black/60 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/[0.06] shadow-xl text-left hidden sm:block">
-                  <span className="text-[8px] font-mono text-slate-400 uppercase tracking-wider block font-bold">INSULATION STYLE</span>
-                  <p className="text-[10px] font-bold text-white font-sans mt-0.5">24h Hot & Cold</p>
+                  <span className="text-[8px] font-mono text-slate-400 uppercase tracking-wider block font-bold">POWER SYSTEM</span>
+                  <p className="text-[10px] font-bold text-white font-sans mt-0.5">Removeable Battery</p>
                 </div>
 
                 <div className="absolute bottom-12 -left-16 z-25 bg-black/60 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/[0.06] shadow-xl text-left hidden sm:block">
-                  <span className="text-[8px] font-mono text-slate-400 uppercase tracking-wider block font-bold">INTELLIGENCE</span>
-                  <p className="text-[10px] font-bold text-white font-sans mt-0.5">LED Temp Screen</p>
+                  <span className="text-[8px] font-mono text-slate-400 uppercase tracking-wider block font-bold">SPECIFICATION</span>
+                  <p className="text-[10px] font-bold text-white font-sans mt-0.5">50kg Maximum</p>
                 </div>
               </div>
             </div>
@@ -170,10 +170,10 @@ export default function Hero({ onScrollToProducts, onViewProduct }: HeroProps) {
             {/* Refined minimalist floating metadata label under bottle */}
             <div className="absolute bottom-0 text-center mt-6">
               <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block">
-                FLAGSHIP SHOWCASE — FLASK SL-26
+                Portable Electronic Scale
               </span>
               <span className="text-xs font-bold text-slate-300 mt-1 block">
-                ৳499 <span className="text-[10px] text-slate-500 line-through font-normal ml-1.5">৳650</span>
+                ৳350 <span className="text-[10px] text-slate-500 line-through font-normal ml-1.5">৳550</span>
               </span>
             </div>
 

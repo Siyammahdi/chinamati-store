@@ -1,12 +1,70 @@
-import { Product, User, Order, Invoice } from '../types';
+import { Product, User, Order, Invoice, ProductReview } from '../types';
 import {
   syncProductUpsert,
   syncProductDelete,
   syncUserUpsert,
   syncUserDelete,
   syncOrderUpsert,
-  syncOrderDelete
+  syncOrderDelete,
+  syncReviewUpsert,
+  syncReviewDelete
 } from './supabase';
+
+const PRE_SEEDED_REVIEWS: ProductReview[] = [
+  {
+    id: 'rev-1-1',
+    productId: 'prod-1',
+    reviewer: 'Adnan Chowdhury',
+    location: 'Dhanmondi, Dhaka',
+    date: '2 weeks ago',
+    rating: 5,
+    text: 'The build quality feels remarkably premium and heavier than typical generic hardware alternatives. Meticulously engineered chassis, highly responsive interface dials, and outstanding temperature insulation. Genuinely worth every Taka.',
+    imageUrls: [
+      'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&q=80&w=1000',
+      'https://images.unsplash.com/photo-1434494878577-86c23bcb06b9?auto=format&fit=crop&q=80&w=1000'
+    ],
+    createdAt: new Date(Date.now() - 14 * 86400000).toISOString()
+  },
+  {
+    id: 'rev-1-2',
+    productId: 'prod-1',
+    reviewer: 'Tasnuva Jahan',
+    location: 'Halishahar, Chittagong',
+    date: '3 days ago',
+    rating: 5,
+    text: 'Remarkably minimal design that fits cleanly into my kitchen. The garlic chopper arrived double-wrapped and sealed. Smooth direct shipping and delivery updates with immediate feedback.',
+    imageUrls: [
+      'https://images.unsplash.com/photo-1517502884422-41eaaced0168?auto=format&fit=crop&q=80&w=1000'
+    ],
+    createdAt: new Date(Date.now() - 3 * 86400000).toISOString()
+  },
+  {
+    id: 'rev-2-1',
+    productId: 'prod-2',
+    reviewer: 'Sajid Mashroo',
+    location: 'Uposhohor, Sylhet',
+    date: 'Last month',
+    rating: 5,
+    text: 'Immensely solid structure and reliable performance. The motion sensor light registers instantly even from 10 feet away. Incredible premium feel!',
+    imageUrls: [
+      'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&q=80&w=1000'
+    ],
+    createdAt: new Date(Date.now() - 30 * 86400000).toISOString()
+  },
+  {
+    id: 'rev-3-1',
+    productId: 'prod-3',
+    reviewer: 'Nishat Tasnim',
+    location: 'Uttara, Dhaka',
+    date: '1 week ago',
+    rating: 4,
+    text: 'Extremely handy for mixing protein shakes or hot coffee in the morning without creating any spoon noises or waste. Reinvigorated my desk setup.',
+    imageUrls: [
+      'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&q=80&w=1000'
+    ],
+    createdAt: new Date(Date.now() - 7 * 86400000).toISOString()
+  }
+];
 
 const ADMIN_EMAIL = 'admin@chinamati.com';
 const ADMIN_PASSWORD = 'adminpassword123';
@@ -181,6 +239,9 @@ export class DB {
   static init() {
     if (!localStorage.getItem('gs_products')) {
       localStorage.setItem('gs_products', JSON.stringify(PRE_SEEDED_PRODUCTS));
+    }
+    if (!localStorage.getItem('gs_reviews')) {
+      localStorage.setItem('gs_reviews', JSON.stringify(PRE_SEEDED_REVIEWS));
     }
     if (!localStorage.getItem('gs_users')) {
       // Preseed admin
@@ -492,5 +553,99 @@ export class DB {
 
     this.setActiveSession(user);
     return { success: true, user };
+  }
+
+  // --- REVIEWS ---
+  static getReviews(): ProductReview[] {
+    this.init();
+    try {
+      return JSON.parse(localStorage.getItem('gs_reviews') || '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  static getReviewsForProduct(productId: string): ProductReview[] {
+    const all = this.getReviews();
+    const matches = all.filter(r => r.productId === productId);
+    // If no dynamic reviews are configured for this product, let's provide a fallback of general high-quality reviews
+    if (matches.length === 0) {
+      return [
+        {
+          id: `fallback-${productId}-1`,
+          productId: productId,
+          reviewer: "Adnan Chowdhury",
+          location: "Dhanmondi, Dhaka",
+          date: "2 weeks ago",
+          rating: 5,
+          text: "The build quality feels remarkably premium and heavier than typical generic hardware alternatives. Meticulously engineered chassis, highly responsive interface dials, and outstanding temperature insulation. Genuinely worth every Taka.",
+          imageUrls: [
+            "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=1000",
+            "https://images.unsplash.com/photo-1542751110-97427bb9f20e?auto=format&fit=crop&q=80&w=1000"
+          ],
+          createdAt: new Date(Date.now() - 14 * 86400000).toISOString()
+        },
+        {
+          id: `fallback-${productId}-2`,
+          productId: productId,
+          reviewer: "Tasnuva Jahan",
+          location: "Halishahar, Chittagong",
+          date: "3 days ago",
+          rating: 5,
+          text: "Remarkably minimal design that fits cleanly into my daily life. The package arrived double-wrapped and sealed, looking stunning out of the box. Smooth direct shipping and delivery updates.",
+          imageUrls: [],
+          createdAt: new Date(Date.now() - 3 * 86400000).toISOString()
+        }
+      ];
+    }
+    return matches;
+  }
+
+  static async saveReview(review: ProductReview): Promise<{ success: boolean; error?: any }> {
+    const reviews = this.getReviews();
+    const index = reviews.findIndex(r => r.id === review.id);
+    if (index > -1) {
+      reviews[index] = review;
+    } else {
+      reviews.push(review);
+    }
+    localStorage.setItem('gs_reviews', JSON.stringify(reviews));
+    
+    // Auto calculate reviewsCount and rating on corresponding product
+    const products = this.getProducts();
+    const pIdx = products.findIndex(p => p.id === review.productId);
+    if (pIdx > -1) {
+      const productReviews = reviews.filter(r => r.productId === review.productId);
+      const totalRating = productReviews.reduce((sum, r) => sum + r.rating, 0);
+      products[pIdx].reviewsCount = productReviews.length;
+      products[pIdx].rating = Number((totalRating / productReviews.length).toFixed(1)) || 5.0;
+      await this.saveProduct(products[pIdx]);
+    }
+
+    const result = await syncReviewUpsert(review);
+    return result || { success: true };
+  }
+
+  static async deleteReview(id: string): Promise<{ success: boolean; error?: any }> {
+    const reviews = this.getReviews();
+    const matched = reviews.find(r => r.id === id);
+    const filtered = reviews.filter(r => r.id !== id);
+    localStorage.setItem('gs_reviews', JSON.stringify(filtered));
+
+    if (matched) {
+      // Auto recalculate reviewsCount and rating on product
+      const products = this.getProducts();
+      const pIdx = products.findIndex(p => p.id === matched.productId);
+      if (pIdx > -1) {
+        const productReviews = filtered.filter(r => r.productId === matched.productId);
+        const totalRating = productReviews.reduce((sum, r) => sum + r.rating, 0);
+        products[pIdx].reviewsCount = productReviews.length;
+        products[pIdx].rating = productReviews.length > 0 ? Number((totalRating / productReviews.length).toFixed(1)) : 5.0;
+        await this.saveProduct(products[pIdx]);
+      }
+    }
+
+    const result = await syncReviewDelete(id);
+    return result || { success: true };
   }
 }

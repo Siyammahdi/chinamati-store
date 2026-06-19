@@ -41,10 +41,9 @@ export default function Header({
               </div>
             </div>
             <div>
-              <span className="text-lg font-bold tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
-                CHINA<span className="text-slate-400 font-light">MATI</span>
+              <span className="text-xl font-extrabold tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors font-sans">
+                Chinamati
               </span>
-              <p className="text-[9px] text-slate-500 font-mono tracking-widest uppercase -mt-1 font-semibold">PREMIUM IMPORTS</p>
             </div>
           </div>
 
@@ -129,7 +128,7 @@ export default function Header({
                 className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold border border-slate-200 rounded-full hover:bg-slate-50 text-slate-700 cursor-pointer transition-all"
               >
                 <User className="h-3.5 w-3.5 text-blue-600" />
-                <span>Admin Login / Sign In</span>
+                <span>Sign In</span>
               </button>
             )}
           </div>

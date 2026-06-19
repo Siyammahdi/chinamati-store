@@ -9,6 +9,7 @@ import UserDashboard from './components/UserDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import LoginModal from './components/LoginModal';
 import AboutPage, { AboutSection } from './components/AboutPage';
+import { TrustPillars, DTCSpotlight } from './components/MarketingSections';
 import { DB } from './lib/db';
 import { Product, User, Order } from './types';
 import { Filter, ShoppingBag, CheckCircle, ArrowRight, Home, Sparkles, MapPin } from 'lucide-react';
@@ -55,6 +56,65 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Set up backward-compatible path & hash URL dynamic router
+  useEffect(() => {
+    const handleUrlRouting = () => {
+      const path = window.location.pathname;
+      const hash = window.location.hash;
+
+      // Determine page, subset parameters
+      let targetPage = 'home';
+      let targetProductId: string | null = null;
+      let targetSpecsSec: AboutSection = 'about';
+
+      // Parse current route (either from path, or fallback hash path)
+      const routerPath = (path === '/' && hash.startsWith('#')) ? hash.substring(1) : path;
+
+      if (routerPath === '/about' || routerPath === 'about') {
+        targetPage = 'about';
+        targetSpecsSec = 'about';
+      } else if (routerPath === '/about/terms' || routerPath === 'about/terms') {
+        targetPage = 'about';
+        targetSpecsSec = 'terms';
+      } else if (routerPath === '/about/privacy' || routerPath === 'about/privacy') {
+        targetPage = 'about';
+        targetSpecsSec = 'privacy';
+      } else if (routerPath === '/about/refunds' || routerPath === 'about/refunds') {
+        targetPage = 'about';
+        targetSpecsSec = 'refunds';
+      } else if (routerPath === '/about/delivery' || routerPath === 'about/delivery') {
+        targetPage = 'about';
+        targetSpecsSec = 'delivery';
+      } else if (routerPath === '/dashboard' || routerPath === 'dashboard') {
+        targetPage = 'dashboard';
+      } else if (routerPath === '/admin' || routerPath === 'admin') {
+        targetPage = 'admin';
+      } else if (routerPath.startsWith('/product/') || routerPath.startsWith('product/')) {
+        targetPage = 'product-details';
+        const segments = routerPath.split('/');
+        targetProductId = segments[segments.length - 1] || null;
+      }
+
+      setActivePage(targetPage);
+      setActiveProductId(targetProductId);
+      if (targetPage === 'about') {
+        setActiveAboutSection(targetSpecsSec);
+      }
+    };
+
+    // Run router on initial mount
+    handleUrlRouting();
+
+    // Listen to live browser history/back navigation
+    window.addEventListener('popstate', handleUrlRouting);
+    window.addEventListener('hashchange', handleUrlRouting);
+
+    return () => {
+      window.removeEventListener('popstate', handleUrlRouting);
+      window.removeEventListener('hashchange', handleUrlRouting);
+    };
+  }, []);
+
   // Automatic Supabase state background initial synchronization on application load
   useEffect(() => {
     const syncOnStartup = async () => {
@@ -83,7 +143,7 @@ export default function App() {
   const handleLogout = () => {
     DB.clearActiveSession();
     setCurrentUser(null);
-    setActivePage('home');
+    navigateTo('home');
   };
 
   // Sync login completion & automatic routing
@@ -91,13 +151,13 @@ export default function App() {
     setCurrentUser(user);
     setShowLoginModal(false);
     if (user.isAdmin) {
-      setActivePage('admin');
+      navigateTo('admin');
     } else {
-      setActivePage('dashboard');
+      navigateTo('dashboard');
     }
   };
 
-  // Navigation controller
+  // Navigation controller supporting live path rewriting representing distinct pages
   const navigateTo = (page: string, extra?: any) => {
     // Clear temporary order alerts
     setSuccessOrder(null);
@@ -110,7 +170,6 @@ export default function App() {
     }, 550);
 
     // Proactively pull updates in background whenever the user transitions between primary pages
-    // to keep user panel, storefront items, and administrative details perfectly in sync with Supabase.
     const runAsyncFetch = async () => {
       try {
         const { isSupabaseConfigured, pullFromSupabase } = await import('./lib/supabase');
@@ -130,19 +189,31 @@ export default function App() {
     };
     runAsyncFetch();
 
+    let pathName = '/';
     if (page === 'product-details' && extra) {
       setActiveProductId(extra.productId);
+      pathName = `/product/${extra.productId}`;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       setActiveProductId(null);
       if (page === 'about') {
-        if (extra && extra.section) {
-          setActiveAboutSection(extra.section);
-        } else {
-          setActiveAboutSection('about');
-        }
+        const sec = extra?.section || 'about';
+        setActiveAboutSection(sec);
+        pathName = sec === 'about' ? '/about' : `/about/${sec}`;
+      } else if (page === 'dashboard') {
+        pathName = '/dashboard';
+      } else if (page === 'admin') {
+        pathName = '/admin';
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    try {
+      // Set history pushState so url transitions match real routing
+      window.history.pushState(null, '', pathName);
+    } catch (e) {
+      // Fallback for sandboxed frames that block pushState
+      window.location.hash = pathName;
     }
   };
 
@@ -282,6 +353,8 @@ export default function App() {
                     onViewProduct={(id) => navigateTo('product-details', { productId: id })}
                   />
 
+                  
+
                   {/* Main Goods storefront shelf */}
                   <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" id="store-catalog-grid">
                     
@@ -374,6 +447,12 @@ export default function App() {
                     </div>
 
                   </section>
+
+                  {/* Trust Pillars Guarantee Section */}
+                  <TrustPillars />
+
+                  {/* DTC Factory Price Spotlight Campaign */}
+                  <DTCSpotlight onExplore={handleScrollToProducts} />
                 </div>
               )}
 
@@ -519,11 +598,11 @@ export default function App() {
               <div className="space-y-1.5 text-slate-400 text-[11px]">
                 <p className="flex items-center gap-2 text-slate-300">
                   <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full" />
-                  <span><strong>Inside Dhaka:</strong> 5 Days (৳60 fee)</span>
+                  <span><strong>Inside Dhaka:</strong> 2 Days (৳60 fee)</span>
                 </p>
                 <p className="flex items-center gap-2 text-slate-300">
                   <span className="h-1.5 w-1.5 bg-amber-500 rounded-full" />
-                  <span><strong>Outside Dhaka:</strong> 10 Days (৳120 fee)</span>
+                  <span><strong>Outside Dhaka:</strong> 3 Days (৳120 fee)</span>
                 </p>
               </div>
               <button 
@@ -571,18 +650,31 @@ export default function App() {
 
             {/* Column 4: Authorized Merchant Details */}
             <div className="space-y-3 text-left md:text-right">
-              <span className="text-white font-bold block uppercase tracking-wider text-[11px]">MERCHANT STATUS</span>
+              <span className="text-white font-bold block uppercase tracking-wider text-[11px]">MERCHANT CREDENTIALS</span>
               <div className="space-y-1.5 text-slate-400 text-[11px] leading-relaxed">
-                <span className="font-mono block text-white">Code: SEC_940B2 (Verified)</span>
-                <p>Synced with Live Supabase Cloud Database Servers.</p>
-                <p className="text-slate-500">© 2026 CHINAMATI Premium Imports. All Rights Reserved.</p>
+                <span className="font-mono block text-white">License No: 003591 (Verified)</span>
+                <p><strong>HQ:</strong> House 32, Road 01, Aram Model Town, Mohammadpur, Dhaka</p>
+                <p><strong>Reg:</strong> Taltola College Para (07)</p>
+                <p><strong>Mail:</strong> mychinamati@gmail.com</p>
+                <p><strong>Cell:</strong> +880 1635483536</p>
+                <p className="text-slate-500">© 2026 chinamati.com. All Rights Reserved.</p>
               </div>
             </div>
 
           </div>
 
+          {/* SSLCommerz Payment Gateway Branding Banner */}
+          <div className="bg-white rounded-2xl p-3 sm:p-4 mb-8 flex items-center justify-center shadow-sm overflow-hidden border border-slate-200/80">
+            <img 
+              src="https://res.cloudinary.com/dttbj6a0m/image/upload/v1781885350/Payment_Banner_Dec25-02_htoyqd.png" 
+              alt="SSLCommerz Secure Payment Partners" 
+              referrerPolicy="no-referrer"
+              className="w-full h-auto object-contain"
+            />
+          </div>
+
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 text-[11px] font-sans">
-            <span>Secured SSLCommerz Sandbox Transactions Shield</span>
+            <span>Secured SSLCommerz Sandbox Transactions Shield • Licence 003591</span>
             <div className="flex gap-4">
               <span className="hover:text-white cursor-pointer transition-colors" onClick={() => setShowLoginModal(true)}>Confidential Admin Terminal Access</span>
               <span>•</span>

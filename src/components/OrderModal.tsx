@@ -19,13 +19,19 @@ export default function OrderModal({
   onOrderCompleted
 }: OrderModalProps) {
   // Checkout Form States
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [district, setDistrict] = useState('Dhaka');
-  const [deliveryArea, setDeliveryArea] = useState<'inside' | 'outside'>('inside');
-  const [address, setAddress] = useState('');
+  const sessionUser = DB.getActiveSession();
+  const [name, setName] = useState(sessionUser ? sessionUser.name : '');
+  const [email, setEmail] = useState(sessionUser ? sessionUser.email : '');
+  const [phone, setPhone] = useState(sessionUser ? sessionUser.phone : '');
+  const [district, setDistrict] = useState(sessionUser ? (sessionUser.district || 'Dhaka') : 'Dhaka');
+  const [deliveryArea, setDeliveryArea] = useState<'inside' | 'outside'>(
+    sessionUser && sessionUser.district && sessionUser.district.toLowerCase() !== 'dhaka' && sessionUser.district.toLowerCase() !== 'inside dhaka' 
+      ? 'outside' 
+      : 'inside'
+  );
+  const [address, setAddress] = useState(sessionUser ? sessionUser.address : '');
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'sslcommerz'>('cod');
+  const [agreedToPolicies, setAgreedToPolicies] = useState(false);
   
   // Simulated sslcommerz workflow states
   const [showSSLGateway, setShowSSLGateway] = useState(false);
@@ -36,6 +42,12 @@ export default function OrderModal({
   
   // Form submission errors
   const [error, setError] = useState('');
+
+  const navigateFromModal = (sec: string) => {
+    onClose();
+    window.history.pushState(null, '', `/about/${sec}`);
+    window.dispatchEvent(new Event('popstate'));
+  };
 
   const subtotal = product.price * quantity;
   const deliveryCharge = deliveryArea === 'inside' ? 60 : 120;
@@ -50,6 +62,10 @@ export default function OrderModal({
     if (!email.trim() || !email.includes('@')) return setError('Please enter a valid email address.');
     if (!phone.trim() || phone.length < 11) return setError('Please enter a valid mobile number.');
     if (!address.trim()) return setError('Please enter your complete delivery address.');
+    
+    if (!agreedToPolicies) {
+      return setError('You must read and agree to the Terms & Conditions, Privacy Policy, and Return & Refund Policy before placing an order.');
+    }
 
     if (paymentMethod === 'sslcommerz') {
       // Prompt simulated SSLCommerz gateway!
@@ -163,10 +179,10 @@ export default function OrderModal({
                     ৳{deliveryCharge}
                   </span>
                 </div>
-                <div className="flex justify-between items-center text-[11px] text-slate-500">
+                <div className="flex justify-between items-center text-[11px] text-slate-500 font-sans">
                   <span>Estimated Delivery Time:</span>
-                  <span className="font-semibold text-slate-700">
-                    {deliveryArea === 'inside' ? '5 Days (Inside Dhaka)' : '10 Days (Outside Dhaka)'}
+                  <span className="font-semibold text-slate-705">
+                    {deliveryArea === 'inside' ? '2 Days (Inside Dhaka)' : '3 Days (Outside Dhaka)'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center border-t border-dashed border-slate-200/80 pt-2 bg-blue-50/20 -mx-4 px-4 py-1.5 rounded-b-xl">
@@ -351,6 +367,52 @@ export default function OrderModal({
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Mandatory Policy Agreement Checkbox */}
+            <div className="border-t border-slate-150/60 pt-4 mt-3 mb-1">
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={agreedToPolicies}
+                  onChange={(e) => setAgreedToPolicies(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
+                  style={{ accentColor: '#2563eb' }}
+                />
+                <span className="text-[10px] sm:text-[11px] text-slate-500 leading-normal font-sans">
+                  I have read and agree to the{' '}
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigateFromModal('terms');
+                    }}
+                    className="text-blue-600 hover:text-blue-800 font-bold underline cursor-pointer"
+                  >
+                    Terms & Conditions
+                  </span>
+                  ,{' '}
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigateFromModal('privacy');
+                    }}
+                    className="text-blue-600 hover:text-blue-800 font-bold underline cursor-pointer"
+                  >
+                    Privacy Policy
+                  </span>
+                  , and{' '}
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigateFromModal('refunds');
+                    }}
+                    className="text-blue-600 hover:text-blue-800 font-bold underline cursor-pointer"
+                  >
+                    Return & Refund Policy
+                  </span>
+                  .
+                </span>
+              </label>
             </div>
 
             {/* Submit Action */}

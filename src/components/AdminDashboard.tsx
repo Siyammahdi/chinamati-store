@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { User, Order, Product, Category } from '../types';
+import { User, Order, Product, Category, ProductReview } from '../types';
 import { DB } from '../lib/db';
 import { 
   ShieldAlert, ShoppingBag, ClipboardList, Users, Settings, 
   Search, Plus, Trash2, Edit, FileText, MapPin, Tag, Star,
-  Database, CloudLightning, RefreshCw, Upload, Download, Copy, Check
+  Database, CloudLightning, RefreshCw, Upload, Download, Copy, Check, MessageSquare
 } from 'lucide-react';
 import { isSupabaseConfigured, pullFromSupabase, pushToSupabase } from '../lib/supabase';
 import InvoiceView from './InvoiceView';
@@ -21,7 +21,7 @@ export default function AdminDashboard({
   dbVersion
 }: AdminDashboardProps) {
   // Navigation tabs of administrative panel
-  const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'customers' | 'profile' | 'supabase'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'customers' | 'reviews' | 'profile' | 'supabase'>('orders');
 
   // Supabase live settings
   const [syncLoading, setSyncLoading] = useState(false);
@@ -37,9 +37,21 @@ export default function AdminDashboard({
   const [orders, setOrders] = useState<Order[]>(() => DB.getOrders());
   const [products, setProducts] = useState<Product[]>(() => DB.getProducts());
   const [users, setUsers] = useState<User[]>(() => DB.getUsers().filter(u => !u.isAdmin));
+  const [reviews, setReviews] = useState<ProductReview[]>(() => DB.getReviews());
 
   // Search filter query
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Reviews submission/action admin states
+  const [editingReview, setEditingReview] = useState<ProductReview | null>(null);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [revId, setRevId] = useState('');
+  const [revProductId, setRevProductId] = useState('');
+  const [revReviewer, setRevReviewer] = useState('');
+  const [revLocation, setRevLocation] = useState('');
+  const [revRating, setRevRating] = useState<number>(5);
+  const [revText, setRevText] = useState('');
+  const [revImageUrlsInput, setRevImageUrlsInput] = useState('');
 
   // Product formulation states (For create/edit)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -52,6 +64,11 @@ export default function AdminDashboard({
   const [pStock, setPStock] = useState(50);
   const [pImgUrl, setPImgUrl] = useState('');
   const [pSpecs, setPSpecs] = useState<string>('Connector: USB\nPower: Electric\nBody: ABS Plastic');
+  const [pRating, setPRating] = useState<number>(4.8);
+  const [pSubImg1, setPSubImg1] = useState<string>('');
+  const [pSubImg2, setPSubImg2] = useState<string>('');
+  const [pSubImg3, setPSubImg3] = useState<string>('');
+  const [pSubImg4, setPSubImg4] = useState<string>('');
 
   // View invoice state
   const [activeInvoiceOrder, setActiveInvoiceOrder] = useState<Order | null>(null);
@@ -66,6 +83,7 @@ export default function AdminDashboard({
     setOrders(DB.getOrders());
     setProducts(DB.getProducts());
     setUsers(DB.getUsers().filter(u => !u.isAdmin));
+    setReviews(DB.getReviews());
   };
 
   // Watch for external reactive synchronization versions (like background start-up / navigation updates)
@@ -151,6 +169,11 @@ export default function AdminDashboard({
     setPStock(50);
     setPImgUrl('https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400&q=80');
     setPSpecs('Warranty: 7 Days Replacements\nQuality: Certified\nPower Source: Batteries');
+    setPRating(4.8);
+    setPSubImg1('');
+    setPSubImg2('');
+    setPSubImg3('');
+    setPSubImg4('');
     setShowProductForm(true);
   };
 
@@ -164,6 +187,11 @@ export default function AdminDashboard({
     setPStock(prod.stock);
     setPImgUrl(prod.imageUrl);
     setPSpecs(prod.specs.join('\n'));
+    setPRating(prod.rating || 4.5);
+    setPSubImg1(prod.subImages?.[0] || '');
+    setPSubImg2(prod.subImages?.[1] || '');
+    setPSubImg3(prod.subImages?.[2] || '');
+    setPSubImg4(prod.subImages?.[3] || '');
     setShowProductForm(true);
   };
 
@@ -180,11 +208,12 @@ export default function AdminDashboard({
       description: pDesc,
       price: pPrice,
       imageUrl: pImgUrl || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400&q=80',
-      rating: editingProduct ? editingProduct.rating : (4.0 + Math.random() * 1.0), // Seed a realistic mock rating
+      rating: Number(pRating) || 4.5,
       reviewsCount: editingProduct ? editingProduct.reviewsCount : Math.floor(20 + Math.random() * 180),
       specs: newSpecsArray,
       category: pCategory,
-      stock: pStock
+      stock: pStock,
+      subImages: [pSubImg1, pSubImg2, pSubImg3, pSubImg4].map(url => url.trim()).filter(url => url !== '')
     };
 
     setSavingProduct(true);
@@ -231,6 +260,93 @@ export default function AdminDashboard({
     }
   };
 
+  // 4. SAVE, EDIT & DELETE PRODUCT REVIEWS
+  const handleSaveReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!revProductId || !revReviewer || !revText) {
+      alert('Please fill out Product, Reviewer Name, and Review Comment text.');
+      return;
+    }
+
+    setActionLoading(true);
+    setActionError(null);
+
+    const imageUrlsArray = revImageUrlsInput
+      .split(',')
+      .map(url => url.trim())
+      .filter(url => url !== '');
+
+    const newReview: ProductReview = {
+      id: revId || `rev-${Date.now()}`,
+      productId: revProductId,
+      reviewer: revReviewer,
+      location: revLocation || 'Bangladesh',
+      date: editingReview ? editingReview.date : 'Just now',
+      rating: Number(revRating),
+      text: revText,
+      imageUrls: imageUrlsArray,
+      createdAt: editingReview ? editingReview.createdAt : new Date().toISOString()
+    };
+
+    try {
+      const res = await DB.saveReview(newReview);
+      if (res && !res.success) {
+        setActionError(`Primary database saved successfully, Supabase Cloud warning: ${res.error?.message || 'Offline fallback mode is active.'}`);
+      }
+      
+      // Refresh local states
+      reloadData();
+      
+      // Reset form variables
+      setShowReviewForm(false);
+      setEditingReview(null);
+      setRevId('');
+      setRevProductId('');
+      setRevReviewer('');
+      setRevLocation('');
+      setRevRating(5);
+      setRevText('');
+      setRevImageUrlsInput('');
+    } catch (err: any) {
+      setActionError(err.message || 'An error occurred while saving the review.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleEditReview = (r: ProductReview) => {
+    setEditingReview(r);
+    setRevId(r.id);
+    setRevProductId(r.productId);
+    setRevReviewer(r.reviewer);
+    setRevLocation(r.location);
+    setRevRating(r.rating);
+    setRevText(r.text);
+    setRevImageUrlsInput(r.imageUrls ? r.imageUrls.join(', ') : '');
+    setShowReviewForm(true);
+  };
+
+  const handleDeleteReview = async (id: string) => {
+    if (!confirm('Are you absolute sure you want to permanently delete this product review?')) {
+      return;
+    }
+
+    setActionLoading(true);
+    setActionError(null);
+
+    try {
+      const res = await DB.deleteReview(id);
+      if (res && !res.success) {
+        setActionError(`Deleted locally, Supabase Cloud sync warning: ${res.error?.message || 'Offline'}`);
+      }
+      reloadData();
+    } catch (err: any) {
+      setActionError(err.message || 'An error occurred while deleting.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   // --- COMPUTE ACTIVE LIST FILTERS OVER SEARCH QUERY ---
   // "admin can search any order or user by name, email, phone or location."
   const meetsSearchCriteria = (item: any) => {
@@ -270,6 +386,16 @@ export default function AdminDashboard({
       );
     }
 
+    // For reviews
+    if (item && item.reviewer !== undefined) {
+      return (
+        (item.reviewer || '').toLowerCase().includes(query) ||
+        (item.text || '').toLowerCase().includes(query) ||
+        (item.location || '').toLowerCase().includes(query) ||
+        (item.productId || '').toLowerCase().includes(query)
+      );
+    }
+
     return false;
   };
 
@@ -280,6 +406,10 @@ export default function AdminDashboard({
   const filteredCustomers = users.filter(meetsSearchCriteria);
 
   const filteredProducts = products.filter(meetsSearchCriteria);
+
+  const filteredReviews = reviews.filter(meetsSearchCriteria).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10" id="admin-dashboard-container">
@@ -408,6 +538,19 @@ export default function AdminDashboard({
           >
             <Users className="h-4 w-4" />
             <span>Background Clients ({users.length})</span>
+          </button>
+
+          <button
+            id="tab-reviews"
+            onClick={() => { setActiveTab('reviews'); setSearchQuery(''); }}
+            className={`px-4.5 py-2.5 rounded-full text-xs font-bold tracking-wide uppercase transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'reviews' 
+                ? 'bg-blue-50 text-blue-600 border border-blue-200' 
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <MessageSquare className="h-4 w-4" />
+            <span>Product Reviews ({reviews.length})</span>
           </button>
 
           <button
@@ -647,14 +790,62 @@ export default function AdminDashboard({
                   </div>
 
                   <div className="space-y-3 font-sans">
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Image Network Address</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Rating (0.0 to 5.0)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="5"
+                          required
+                          value={pRating}
+                          onChange={(e) => setPRating(Number(e.target.value))}
+                          className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3 text-xs focus:border-blue-500 outline-none focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Main Image</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="https://images.unsplash.com/..."
+                          value={pImgUrl}
+                          onChange={(e) => setPImgUrl(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3 text-xs focus:border-blue-500 outline-none focus:bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase">Sub Images (Optional 4 Gallery URLs)</label>
                       <input
                         type="text"
-                        placeholder="https://images.unsplash.com/promo..."
-                        value={pImgUrl}
-                        onChange={(e) => setPImgUrl(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2.5 px-3 text-xs focus:border-blue-500 outline-none focus:bg-white"
+                        placeholder="Sub Image 1 URL (e.g. Unsplash photo)"
+                        value={pSubImg1}
+                        onChange={(e) => setPSubImg1(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:border-blue-500 outline-none focus:bg-white"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Sub Image 2 URL"
+                        value={pSubImg2}
+                        onChange={(e) => setPSubImg2(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:border-blue-500 outline-none focus:bg-white"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Sub Image 3 URL"
+                        value={pSubImg3}
+                        onChange={(e) => setPSubImg3(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:border-blue-500 outline-none focus:bg-white"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Sub Image 4 URL"
+                        value={pSubImg4}
+                        onChange={(e) => setPSubImg4(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl py-2 px-3 text-xs focus:border-blue-500 outline-none focus:bg-white"
                       />
                     </div>
 
@@ -1124,10 +1315,24 @@ CREATE TABLE IF NOT EXISTS public.orders (
   invoice_id TEXT
 );
 
+-- 4. REVIEWS TABLE
+CREATE TABLE IF NOT EXISTS public.reviews (
+  id TEXT PRIMARY KEY,
+  product_id TEXT REFERENCES public.products(id) ON DELETE CASCADE,
+  reviewer_name TEXT NOT NULL,
+  location TEXT,
+  date_text TEXT,
+  rating INTEGER NOT NULL,
+  comment TEXT,
+  image_urls TEXT,
+  created_at TEXT NOT NULL
+);
+
 -- Turn on row-level reading (or disable RLS under your tables settings for quick testing)
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
 
 -- Allow anonymous access rule logs
 CREATE POLICY "Allow public select on products" ON public.products FOR SELECT USING (true);
@@ -1136,6 +1341,8 @@ CREATE POLICY "Allow public select on users" ON public.users FOR SELECT USING (t
 CREATE POLICY "Allow anon write on users" ON public.users FOR ALL USING (true);
 CREATE POLICY "Allow public select on orders" ON public.orders FOR SELECT USING (true);
 CREATE POLICY "Allow anon write on orders" ON public.orders FOR ALL USING (true);
+CREATE POLICY "Allow public select on reviews" ON public.reviews FOR SELECT USING (true);
+CREATE POLICY "Allow anon write on reviews" ON public.reviews FOR ALL USING (true);
 `, 'sql')}
                     className="px-3 py-1 bg-white/[0.04] hover:bg-white/[0.08] text-[10px] text-slate-300 font-bold uppercase rounded transition-all flex items-center gap-1.5 cursor-pointer border border-white/[0.05]"
                   >
@@ -1191,23 +1398,352 @@ CREATE TABLE IF NOT EXISTS public.orders (
   invoice_id TEXT
 );
 
+-- 4. REVIEWS TABLE
+CREATE TABLE IF NOT EXISTS public.reviews (
+  id TEXT PRIMARY KEY,
+  product_id TEXT REFERENCES public.products(id) ON DELETE CASCADE,
+  reviewer_name TEXT NOT NULL,
+  location TEXT,
+  date_text TEXT,
+  rating INTEGER NOT NULL,
+  comment TEXT,
+  image_urls TEXT,
+  created_at TEXT NOT NULL
+);
+
 -- For quick development, you can disable RLS in the tables settings in Supabase,
 -- or run these scripts to allow instant Public read/write:
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Allow public select on products" ON public.products FOR SELECT USING (true);
 CREATE POLICY "Allow anon write on products" ON public.products FOR ALL USING (true);
 CREATE POLICY "Allow public select on users" ON public.users FOR SELECT USING (true);
 CREATE POLICY "Allow anon write on users" ON public.users FOR ALL USING (true);
 CREATE POLICY "Allow public select on orders" ON public.orders FOR SELECT USING (true);
-CREATE POLICY "Allow anon write on orders" ON public.orders FOR ALL USING (true);`}
+CREATE POLICY "Allow anon write on orders" ON public.orders FOR ALL USING (true);
+CREATE POLICY "Allow public select on reviews" ON public.reviews FOR SELECT USING (true);
+CREATE POLICY "Allow anon write on reviews" ON public.reviews FOR ALL USING (true);`}
                 </pre>
               </div>
 
             </div>
           </div>
+
+        </div>
+      )}
+
+      {/* 6. REVIEWS MANAGER TAB */}
+      {activeTab === 'reviews' && (
+        <div className="space-y-6" id="panel-reviews">
+          
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-extrabold text-slate-900 font-sans tracking-tight">Product Review & Image Logs</h2>
+              <p className="text-xs text-slate-500 font-sans mt-0.5">Control live buyer ratings, text feedback, and physical product images displayed in your shop.</p>
+            </div>
+            
+            <button
+              onClick={() => {
+                setEditingReview(null);
+                setRevId('');
+                setRevProductId('');
+                setRevReviewer('');
+                setRevLocation('');
+                setRevRating(5);
+                setRevText('');
+                setRevImageUrlsInput('');
+                setShowReviewForm(true);
+              }}
+              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase rounded-full tracking-wide transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+              id="btn-add-review-trigger"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Create Review Manually</span>
+            </button>
+          </div>
+
+          {/* Action Status Notifications (Error Alerts) */}
+          {actionError && (
+            <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-700 text-xs font-semibold font-sans">
+              {actionError}
+            </div>
+          )}
+
+          {/* Reviews Grid List */}
+          <div className="overflow-hidden bg-white border border-slate-100 rounded-[28px] shadow-2xl shadow-slate-200/40">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs font-sans">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 text-[10px] uppercase font-bold tracking-wider font-sans">
+                    <th className="p-4.5">Reviewer & Store Location</th>
+                    <th className="p-4.5">Rating & Product</th>
+                    <th className="p-4.5">Commentary Text</th>
+                    <th className="p-4.5">Product Photos / Images Feed</th>
+                    <th className="p-4.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-slate-700">
+                  {filteredReviews.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="text-center py-16 text-slate-400 font-semibold font-sans">
+                        No active product reviews found. Try creating one!
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredReviews.map((rev) => {
+                      const matchedProd = products.find(p => p.id === rev.productId);
+                      return (
+                        <tr key={rev.id} className="hover:bg-slate-50/40 transition-colors" id={`review-row-${rev.id}`}>
+                          <td className="p-4.5">
+                            <div className="font-bold text-slate-900 text-sm">{rev.reviewer}</div>
+                            <div className="text-[10px] text-slate-450 font-mono mt-0.5 flex items-center gap-1">
+                              <MapPin className="h-3 w-3 text-slate-400" />
+                              <span>{rev.location || 'Bangladesh'}</span>
+                            </div>
+                            <div className="text-[9px] text-slate-400 font-mono mt-1 uppercase tracking-wider">{rev.date || 'Just now'}</div>
+                          </td>
+                          <td className="p-4.5">
+                            <div className="flex text-amber-400 mb-1.5">
+                              {[...Array(5)].map((_, i) => (
+                                <Star 
+                                  key={i} 
+                                  className={`h-3 w-3 ${i < rev.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`} 
+                                />
+                              ))}
+                            </div>
+                            <div className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 inline-block font-semibold">
+                              {matchedProd ? matchedProd.name : rev.productId}
+                            </div>
+                          </td>
+                          <td className="p-4.5 max-w-sm">
+                            <p className="text-slate-600 leading-relaxed text-xs break-all">{rev.text}</p>
+                          </td>
+                          <td className="p-4.5">
+                            {rev.imageUrls && rev.imageUrls.length > 0 ? (
+                              <div className="flex flex-wrap gap-1.5">
+                                {rev.imageUrls.map((url, i) => (
+                                  <a 
+                                    href={url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    key={i}
+                                    className="block h-10 w-10 rounded border border-slate-200 overflow-hidden bg-slate-50 group hover:border-blue-400 transition-all cursor-zoom-in"
+                                  >
+                                    <img 
+                                      src={url} 
+                                      alt="buyer attachment" 
+                                      referrerPolicy="no-referrer"
+                                      className="h-full w-full object-cover group-hover:scale-105 transition-transform" 
+                                    />
+                                  </a>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-[10px] text-slate-400 italic">No custom images</span>
+                            )}
+                          </td>
+                          <td className="p-4.5 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => handleEditReview(rev)}
+                                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer"
+                                title="Edit feedback info"
+                                id={`btn-edit-review-${rev.id}`}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteReview(rev.id)}
+                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                                title="Delete rating logs"
+                                id={`btn-delete-review-${rev.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Dynamic Review Formulation Inline Modal */}
+          {showReviewForm && (
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-white rounded-[28px] border border-slate-100 shadow-2xl max-w-lg w-full overflow-hidden p-6 sm:p-8 space-y-6 animate-in slide-in-from-bottom-4 duration-300">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <h3 className="text-base font-extrabold text-slate-900 uppercase tracking-tight">
+                    {editingReview ? 'Modify Buyer Feedback Info' : 'Seed Store Review Manually'}
+                  </h3>
+                  <button 
+                    onClick={() => {
+                      setShowReviewForm(false);
+                      setEditingReview(null);
+                    }}
+                    className="text-slate-400 hover:text-slate-700 text-xs font-bold font-mono tracking-widest uppercase cursor-pointer"
+                  >
+                    CLOSE [X]
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveReview} className="space-y-4 text-xs font-sans">
+                  
+                  {/* Select target product */}
+                  <div>
+                    <label className="block text-slate-600 font-bold mb-1 uppercase tracking-wide">Target Product *</label>
+                    <select
+                      value={revProductId}
+                      onChange={(e) => setRevProductId(e.target.value)}
+                      required
+                      className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition-all font-semibold"
+                    >
+                      <option value="">-- Choose Target Product to rate --</option>
+                      {products.map(p => (
+                        <option key={p.id} value={p.id}>{p.name} ({p.id})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Reviewer Name */}
+                    <div>
+                      <label className="block text-slate-600 font-bold mb-1 uppercase tracking-wide">Reviewer Name *</label>
+                      <input
+                        type="text"
+                        value={revReviewer}
+                        onChange={(e) => setRevReviewer(e.target.value)}
+                        placeholder="e.g. Adnan Chowdhury"
+                        required
+                        className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition-all font-semibold"
+                      />
+                    </div>
+
+                    {/* Location */}
+                    <div>
+                      <label className="block text-slate-600 font-bold mb-1 uppercase tracking-wide">Location / Area</label>
+                      <input
+                        type="text"
+                        value={revLocation}
+                        onChange={(e) => setRevLocation(e.target.value)}
+                        placeholder="e.g. Dhanmondi, Dhaka"
+                        className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition-all font-semibold"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Rating stars */}
+                    <div>
+                      <label className="block text-slate-600 font-bold mb-1 uppercase tracking-wide">Star Rating *</label>
+                      <select
+                        value={revRating}
+                        onChange={(e) => setRevRating(Number(e.target.value))}
+                        required
+                        className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition-all font-semibold"
+                      >
+                        <option value={5}>⭐⭐⭐⭐⭐ (5 Stars)</option>
+                        <option value={4}>⭐⭐⭐⭐ (4 Stars)</option>
+                        <option value={3}>⭐⭐⭐ (3 Stars)</option>
+                        <option value={2}>⭐⭐ (2 Stars)</option>
+                        <option value={1}>⭐ (1 Star)</option>
+                      </select>
+                    </div>
+
+                    {/* Quick status message */}
+                    <div className="flex flex-col justify-end">
+                      <p className="text-[10px] text-slate-400 italic">
+                        * Creating/modifying a review automatically recalculates average scores for products catalogs.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Comment Text */}
+                  <div>
+                    <label className="block text-slate-600 font-bold mb-1 uppercase tracking-wide">Comment / Text *</label>
+                    <textarea
+                      value={revText}
+                      onChange={(e) => setRevText(e.target.value)}
+                      placeholder="Input the descriptive user feedback here..."
+                      required
+                      rows={3}
+                      className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition-all font-semibold leading-relaxed"
+                    />
+                  </div>
+
+                  {/* Image attachment URLs */}
+                  <div>
+                    <label className="block text-slate-600 font-bold mb-1 uppercase tracking-wide">Custom Review Photo URLs (Comma separated)</label>
+                    <input
+                      type="text"
+                      value={revImageUrlsInput}
+                      onChange={(e) => setRevImageUrlsInput(e.target.value)}
+                      placeholder="e.g. https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format, https://images.unsplash.com/photo-1542751110-97427bb9f20e?auto=format"
+                      className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition-all font-semibold"
+                    />
+                    <p className="text-[9px] text-slate-450 mt-1">
+                      Include premium lifestyle photos matching this hardware to display in custom client shared shot galleries. Separate multiple photo links with as many commas.
+                    </p>
+                  </div>
+
+                  {/* Active list image pre-viewers */}
+                  {revImageUrlsInput.trim() !== '' && (
+                    <div className="border border-slate-100 rounded-xl p-3 bg-slate-50">
+                      <span className="text-[9px] font-bold text-slate-400 block mb-2 uppercase font-mono">Attachment Preview thumbnails</span>
+                      <div className="flex flex-wrap gap-2">
+                        {revImageUrlsInput
+                          .split(',')
+                          .map(url => url.trim())
+                          .filter(url => url !== '')
+                          .map((url, i) => (
+                            <div key={i} className="h-12 w-12 rounded border border-slate-200 overflow-hidden bg-slate-100">
+                              <img 
+                                src={url} 
+                                alt="review attachment preview" 
+                                referrerPolicy="no-referrer"
+                                className="h-full w-full object-cover" 
+                                onError={(e) => {
+                                  (e.target as any).src = 'https://images.unsplash.com/photo-1594818821915-08e82a9ac5f5?auto=format&fit=crop&q=80&w=150';
+                                }}
+                              />
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Submission and error indicators */}
+                  <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowReviewForm(false);
+                        setEditingReview(null);
+                      }}
+                      className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold uppercase rounded-full cursor-pointer transition-all min-w-[90px]"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={actionLoading}
+                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold uppercase rounded-full cursor-pointer transition-all flex items-center justify-center gap-1.5 shadow"
+                    >
+                      {actionLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Star className="h-4 w-4" />}
+                      <span>{editingReview ? 'Update feedback' : 'Seed feedback'}</span>
+                    </button>
+                  </div>
+
+                </form>
+              </div>
+            </div>
+          )}
 
         </div>
       )}

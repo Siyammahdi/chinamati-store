@@ -63,13 +63,13 @@ export default function Hero({ onScrollToProducts, onViewProduct }: HeroProps) {
             {/* Aspirational Headline */}
             <div className="space-y-4">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight font-sans">
-                Pure form.<br />
+                Need Accurate <br />
                 <span className="bg-gradient-to-r from-slate-100 via-slate-300 to-slate-400 bg-clip-text text-transparent italic font-black">
-                  Perfect function.
+                  Measurements?
                 </span>
               </h1>
               <p className="text-slate-400 text-sm sm:text-base leading-relaxed max-w-lg font-sans">
-                A powerful, compact, wireless food processor. Chopping ingredients is now faster and easier with just a single key click. Great for garlic, ginger, pepper, onion, vegetables, and small meats.
+                Designed for precision, built for convenience. Discover the mini digital scale trusted for reliable measurements.
               </p>
             </div>
 
@@ -87,7 +87,7 @@ export default function Hero({ onScrollToProducts, onViewProduct }: HeroProps) {
                 onClick={onScrollToProducts}
                 className="px-8 py-4 bg-transparent hover:bg-white/[0.02] text-slate-300 border border-white/[0.1] hover:border-white/[0.18] font-bold text-xs tracking-widest uppercase rounded-xl transition-all cursor-pointer flex items-center justify-center font-mono"
               >
-                <span>Explore Catalog</span>
+                <span>Explore More</span>
               </button>
             </div>
 
@@ -151,7 +151,7 @@ export default function Hero({ onScrollToProducts, onViewProduct }: HeroProps) {
                   src="https://res.cloudinary.com/dttbj6a0m/image/upload/v1778881324/file_00000000f77471faac1106016103d10b_rvbw8r.png"
                   alt="USB Rechargeable Electric Garlic Chopper"
                   referrerPolicy="no-referrer"
-                  className="w-40 sm:w-48 h-auto rounded-2xl object-contain relative z-10 transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                  className="w-80 sm:w-80 h-auto rounded-2xl object-contain relative z-10 transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                 />
 
                 {/* Absolute minimal spec tag badge - clean glassmorphism */}
@@ -168,12 +168,12 @@ export default function Hero({ onScrollToProducts, onViewProduct }: HeroProps) {
             </div>
 
             {/* Refined minimalist floating metadata label under bottle */}
-            <div className="absolute bottom-0 text-center mt-6">
-              <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest block">
+            <div className="text-center mt-6">
+              <span className="text-lg font-mono text-slate-500 uppercase tracking-widest block">
                 Portable Electronic Scale
               </span>
-              <span className="text-xs font-bold text-slate-300 mt-1 block">
-                ৳350 <span className="text-[10px] text-slate-500 line-through font-normal ml-1.5">৳550</span>
+              <span className="text-xl font-bold text-slate-300 mt-1 block">
+                Only ৳350 <span className="text-[10px] text-slate-500 line-through font-normal ml-1.5">৳550</span>
               </span>
             </div>
 

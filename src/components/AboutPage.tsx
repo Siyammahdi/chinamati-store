@@ -49,7 +49,7 @@ export default function AboutPage({ onBack, activeSection = 'about', onSectionCh
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-sans text-left" id="about-us-page">
       
       {/* Top action header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 md:flex items-center justify-between">
         <button
           onClick={onBack}
           className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-xl transition-all hover:shadow-xs cursor-pointer"
@@ -57,7 +57,6 @@ export default function AboutPage({ onBack, activeSection = 'about', onSectionCh
           <ArrowLeft className="h-4 w-4 text-blue-600" />
           <span>Back to Storefront</span>
         </button>
-        <span className="text-xs font-mono font-medium text-slate-400">Policy & Information Desk</span>
       </div>
 
       {/* Main Spacious Title Block */}

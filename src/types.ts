@@ -45,7 +45,7 @@ export interface Order {
   items: OrderItem[];
   totalPrice: number;
   paymentMethod: 'cod' | 'sslcommerz';
-  paymentStatus: 'Pending' | 'Paid';
+  paymentStatus: 'Pending' | 'Paid' | 'Failed';
   status: 'Pending' | 'Shipping' | 'Delivered' | 'Cancelled';
   createdAt: string;
   invoiceId: string;
@@ -63,7 +63,7 @@ export interface Invoice {
   items: OrderItem[];
   totalPrice: number;
   paymentMethod: 'cod' | 'sslcommerz';
-  paymentStatus: 'Pending' | 'Paid';
+  paymentStatus: 'Pending' | 'Paid' | 'Failed';
 }
 
 export interface ProductReview {

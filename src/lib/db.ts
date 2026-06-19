@@ -415,6 +415,7 @@ export class DB {
     productId: string;
     quantity: number;
     paymentMethod: 'cod' | 'sslcommerz';
+    paymentStatus?: 'Pending' | 'Paid' | 'Failed';
   }): { order: Order; user: User; isNewUser: boolean } {
     this.init();
 
@@ -482,7 +483,7 @@ export class DB {
       ],
       totalPrice: grandTotalPrice,
       paymentMethod: params.paymentMethod,
-      paymentStatus: params.paymentMethod === 'sslcommerz' ? 'Paid' : 'Pending',
+      paymentStatus: params.paymentStatus || (params.paymentMethod === 'sslcommerz' ? 'Paid' : 'Pending'),
       status: 'Pending',
       createdAt: new Date().toISOString(),
       invoiceId: invoiceId

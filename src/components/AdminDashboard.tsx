@@ -603,95 +603,179 @@ export default function AdminDashboard({
         <div className="space-y-6" id="panel-orders">
           
           <div className="overflow-hidden bg-white border border-slate-100 rounded-[28px] shadow-2xl shadow-slate-200/40">
-            <table className="w-full text-left text-xs font-sans">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 text-[10px] uppercase font-bold tracking-wider font-sans">
-                  <th className="p-4">Order ID & Date</th>
-                  <th className="p-4">Customer info</th>
-                  <th className="p-4">Location (District)</th>
-                  <th className="p-4 text-center">Items (Sum)</th>
-                  <th className="p-4 text-center">Gateway</th>
-                  <th className="p-4 text-center">Dispatch Status</th>
-                  <th className="p-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {filteredOrders.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="text-center py-12 text-slate-400 font-semibold font-sans">
-                      No matching order records found.
-                    </td>
+            {/* Table view for desktop */}
+            <div className="hidden md:block">
+              <table className="w-full text-left text-xs font-sans">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 text-[10px] uppercase font-bold tracking-wider font-sans">
+                    <th className="p-4">Order ID & Date</th>
+                    <th className="p-4">Customer info</th>
+                    <th className="p-4">Location (District)</th>
+                    <th className="p-4 text-center">Items (Sum)</th>
+                    <th className="p-4 text-center">Gateway</th>
+                    <th className="p-4 text-center">Dispatch Status</th>
+                    <th className="p-4 text-right">Actions</th>
                   </tr>
-                ) : (
-                  filteredOrders.map(ord => (
-                    <tr key={ord.id} className="hover:bg-slate-50 text-slate-700 transition-colors">
-                      <td className="p-4">
-                        <span className="text-slate-950 font-bold block">#{ord.id}</span>
-                        <span className="text-[10px] text-slate-400">{new Date(ord.createdAt).toLocaleString()}</span>
-                      </td>
-                      <td className="p-4 space-y-0.5">
-                        <strong className="text-slate-900 block font-sans font-bold">{ord.userName}</strong>
-                        <span className="text-slate-500 block">{ord.userEmail}</span>
-                        <span className="text-slate-400 text-[10px] block font-medium">{ord.userPhone}</span>
-                      </td>
-                      <td className="p-4">
-                        <span className="text-slate-800 font-bold flex items-center gap-1">
-                          <MapPin className="h-3.5 w-3.5 text-blue-500 flex-shrink-0" />
-                          <span>{ord.userDistrict}</span>
-                        </span>
-                        <span className="text-[10px] text-slate-400 max-w-[150px] truncate block mt-0.5 font-medium" title={ord.userAddress}>{ord.userAddress}</span>
-                      </td>
-                      <td className="p-4 text-center">
-                        <span className="text-blue-600 font-extrabold text-sm block">৳{ord.totalPrice.toLocaleString()}</span>
-                        <span className="text-[10px] text-slate-400 font-bold block max-w-[120px] truncate">{ord.items[0]?.productName}</span>
-                      </td>
-                      <td className="p-4 text-center">
-                        <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                          ord.paymentMethod === 'sslcommerz' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-slate-50 text-slate-600 border border-slate-200'
-                        }`}>
-                          {ord.paymentMethod.toUpperCase()}
-                        </span>
-                        <span className={`text-[10px] block mt-1 font-bold ${ord.paymentStatus === 'Paid' ? 'text-green-600' : 'text-amber-600'}`}>
-                          {ord.paymentStatus.toUpperCase()}
-                        </span>
-                      </td>
-                      {/* Status selectors */}
-                      <td className="p-4 text-center">
-                        <select
-                          value={ord.status}
-                          onChange={(e) => handleUpdateOrderStatus(ord.id, e.target.value as Order['status'])}
-                          className="bg-slate-50 text-slate-700 border border-slate-200 text-[11px] rounded-lg p-1.5 focus:bg-white outline-none cursor-pointer focus:border-blue-500"
-                        >
-                          <option value="Pending">Pending</option>
-                          <option value="Shipping">Shipping</option>
-                          <option value="Delivered">Delivered</option>
-                          <option value="Cancelled">Cancelled</option>
-                        </select>
-                      </td>
-                      {/* Actions */}
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            title="Compile Invoice Ledger"
-                            onClick={() => setActiveInvoiceOrder(ord)}
-                            className="bg-white border border-slate-200 text-blue-600 hover:bg-slate-50 p-1.5 rounded-lg transition-colors cursor-pointer shadow-sm"
-                          >
-                            <FileText className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            title="Delete Order Entry"
-                            onClick={() => handleDeleteOrder(ord.id)}
-                            className="bg-white border border-slate-200 text-red-500 hover:text-red-700 p-1.5 rounded-lg transition-colors cursor-pointer shadow-sm"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-slate-700">
+                  {filteredOrders.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="text-center py-12 text-slate-400 font-semibold font-sans">
+                        No matching order records found.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    filteredOrders.map(ord => (
+                      <tr key={ord.id} className="hover:bg-slate-50 text-slate-700 transition-colors">
+                        <td className="p-4">
+                          <span className="text-slate-950 font-bold block">#{ord.id}</span>
+                          <span className="text-[10px] text-slate-400">{new Date(ord.createdAt).toLocaleString()}</span>
+                        </td>
+                        <td className="p-4 space-y-0.5">
+                          <strong className="text-slate-900 block font-sans font-bold">{ord.userName}</strong>
+                          <span className="text-slate-500 block">{ord.userEmail}</span>
+                          <span className="text-slate-400 text-[10px] block font-medium">{ord.userPhone}</span>
+                        </td>
+                        <td className="p-4">
+                          <span className="text-slate-800 font-bold flex items-center gap-1">
+                            <MapPin className="h-3.5 w-3.5 text-blue-500 flex-shrink-0" />
+                            <span>{ord.userDistrict}</span>
+                          </span>
+                          <span className="text-[10px] text-slate-400 max-w-[150px] truncate block mt-0.5 font-medium" title={ord.userAddress}>{ord.userAddress}</span>
+                        </td>
+                        <td className="p-4 text-center">
+                          <span className="text-blue-600 font-extrabold text-sm block">৳{ord.totalPrice.toLocaleString()}</span>
+                          <span className="text-[10px] text-slate-400 font-bold block max-w-[120px] truncate">{ord.items[0]?.productName}</span>
+                        </td>
+                        <td className="p-4 text-center">
+                          <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                            ord.paymentMethod === 'sslcommerz' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-slate-50 text-slate-600 border border-slate-200'
+                          }`}>
+                            {ord.paymentMethod.toUpperCase()}
+                          </span>
+                          <span className={`text-[10px] block mt-1 font-bold ${ord.paymentStatus === 'Paid' ? 'text-green-600' : 'text-amber-600'}`}>
+                            {ord.paymentStatus.toUpperCase()}
+                          </span>
+                        </td>
+                        {/* Status selectors */}
+                        <td className="p-4 text-center">
+                          <select
+                            value={ord.status}
+                            onChange={(e) => handleUpdateOrderStatus(ord.id, e.target.value as Order['status'])}
+                            className="bg-slate-50 text-slate-700 border border-slate-200 text-[11px] rounded-lg p-1.5 focus:bg-white outline-none cursor-pointer focus:border-blue-500"
+                          >
+                            <option value="Pending">Pending</option>
+                            <option value="Shipping">Shipping</option>
+                            <option value="Delivered">Delivered</option>
+                            <option value="Cancelled">Cancelled</option>
+                          </select>
+                        </td>
+                        {/* Actions */}
+                        <td className="p-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              title="Compile Invoice Ledger"
+                              onClick={() => setActiveInvoiceOrder(ord)}
+                              className="bg-white border border-slate-200 text-blue-600 hover:bg-slate-50 p-1.5 rounded-lg transition-colors cursor-pointer shadow-sm"
+                            >
+                              <FileText className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              title="Delete Order Entry"
+                              onClick={() => handleDeleteOrder(ord.id)}
+                              className="bg-white border border-slate-200 text-red-500 hover:text-red-700 p-1.5 rounded-lg transition-colors cursor-pointer shadow-sm"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Card view for mobile */}
+            <div className="md:hidden space-y-4 p-4">
+              {filteredOrders.length === 0 ? (
+                <div className="text-center py-12 text-slate-400 font-semibold font-sans">
+                  No matching order records found.
+                </div>
+              ) : (
+                filteredOrders.map(ord => (
+                  <div key={ord.id} className="bg-slate-50/50 rounded-2xl border border-slate-100 p-4 space-y-3 hover:border-slate-200 transition-all shadow-sm hover:bg-slate-50">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-950 font-bold">#{ord.id}</span>
+                          <span className={`text-[9px] font-bold font-sans px-2 py-0.5 rounded-full border ${
+                            ord.paymentMethod === 'sslcommerz' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-slate-50 text-slate-600 border border-slate-200'
+                          }`}>
+                            {ord.paymentMethod.toUpperCase()}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-slate-400">{new Date(ord.createdAt).toLocaleString()}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className={`text-[10px] block mb-1 font-bold ${ord.paymentStatus === 'Paid' ? 'text-green-600' : 'text-amber-600'}`}>
+                          {ord.paymentStatus.toUpperCase()}
+                        </span>
+                        <span className="text-blue-600 font-extrabold text-sm block">৳{ord.totalPrice.toLocaleString()}</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <strong className="text-slate-900 font-sans font-bold">{ord.userName}</strong>
+                      <span className="text-slate-500 block text-xs">{ord.userEmail}</span>
+                      <span className="text-slate-400 text-[10px] block font-medium">{ord.userPhone}</span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-3.5 w-3.5 text-blue-500 flex-shrink-0" />
+                        <span className="text-slate-800 font-bold">{ord.userDistrict}</span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 block font-medium">{ord.userAddress}</span>
+                    </div>
+
+                    <div className="text-[10px] text-slate-400 font-bold">
+                      Item: {ord.items[0]?.productName}
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                      <select
+                        value={ord.status}
+                        onChange={(e) => handleUpdateOrderStatus(ord.id, e.target.value as Order['status'])}
+                        className="bg-white text-slate-700 border border-slate-200 text-[11px] rounded-lg p-1.5 focus:bg-white outline-none cursor-pointer focus:border-blue-500 flex-1"
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="Shipping">Shipping</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Cancelled">Cancelled</option>
+                      </select>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          title="Compile Invoice Ledger"
+                          onClick={() => setActiveInvoiceOrder(ord)}
+                          className="bg-white border border-slate-200 text-blue-600 hover:bg-slate-50 p-1.5 rounded-lg transition-colors cursor-pointer shadow-sm"
+                        >
+                          <FileText className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          title="Delete Order Entry"
+                          onClick={() => handleDeleteOrder(ord.id)}
+                          className="bg-white border border-slate-200 text-red-500 hover:text-red-700 p-1.5 rounded-lg transition-colors cursor-pointer shadow-sm"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
           {/* Collapsible overlay invoice display block */}
@@ -892,81 +976,143 @@ export default function AdminDashboard({
 
           {/* Products listings table */}
           <div className="overflow-hidden bg-white border border-slate-100 rounded-[28px] shadow-2xl shadow-slate-200/40">
-            <table className="w-full text-left text-xs font-sans">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 text-[10px] uppercase font-bold tracking-wider font-sans">
-                  <th className="p-4">Visual Thumb/ID</th>
-                  <th className="p-4">Goods Name</th>
-                  <th className="p-4 font-center">Category</th>
-                  <th className="p-4 text-center">Unit Price</th>
-                  <th className="p-4 text-center">Stock remaining</th>
-                  <th className="p-4 text-center">Metrics rating</th>
-                  <th className="p-4 text-right">Edit Controls</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {filteredProducts.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="text-center py-12 text-slate-400 font-bold font-sans">
-                      No matching goods found under active search criteria.
-                    </td>
+            {/* Table view for desktop */}
+            <div className="hidden md:block">
+              <table className="w-full text-left text-xs font-sans">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 text-[10px] uppercase font-bold tracking-wider font-sans">
+                    <th className="p-4">Visual Thumb/ID</th>
+                    <th className="p-4">Goods Name</th>
+                    <th className="p-4 font-center">Category</th>
+                    <th className="p-4 text-center">Unit Price</th>
+                    <th className="p-4 text-center">Stock remaining</th>
+                    <th className="p-4 text-center">Metrics rating</th>
+                    <th className="p-4 text-right">Edit Controls</th>
                   </tr>
-                ) : (
-                  filteredProducts.map(prod => (
-                    <tr key={prod.id} className="hover:bg-slate-50 text-slate-705 transition-all">
-                      <td className="p-4 flex items-center gap-3">
-                        <img
-                          src={prod.imageUrl}
-                          alt={prod.name}
-                          className="h-10 w-10 object-cover rounded-lg border border-slate-150 shadow-sm"
-                        />
-                        <span className="text-slate-400 font-mono text-[10px]">{prod.id}</span>
-                      </td>
-                      <td className="p-4">
-                        <span className="text-slate-900 font-bold block">{prod.name}</span>
-                        <span className="text-[10px] text-slate-400 block max-w-[250px] truncate font-medium">{prod.description}</span>
-                      </td>
-                      <td className="p-4">
-                        <span className="bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-105 text-[10px] uppercase text-blue-605 font-bold tracking-wider">
-                          {prod.category}
-                        </span>
-                      </td>
-                      <td className="p-4 text-center">
-                        <span className="text-slate-900 font-bold font-sans">৳{prod.price.toLocaleString()}</span>
-                      </td>
-                      <td className="p-4 text-center font-sans">
-                        <span className={`font-bold ${prod.stock <= 20 ? 'text-red-500 font-extrabold animate-pulse' : 'text-slate-750'}`}>
-                          {prod.stock} Units
-                        </span>
-                      </td>
-                      <td className="p-4 text-center font-sans">
-                        <div className="flex items-center justify-center gap-1">
-                          <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                          <span className="text-amber-500 font-extrabold">{prod.rating}</span>
-                          <span className="text-slate-400 font-medium">({prod.reviewsCount})</span>
-                        </div>
-                      </td>
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => startEditProduct(prod)}
-                            className="bg-white border border-slate-205 text-blue-600 hover:bg-slate-50 p-1.5 rounded-lg transition-colors cursor-pointer shadow-sm"
-                          >
-                            <Edit className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteProduct(prod.id)}
-                            className="bg-white border border-slate-205 text-red-500 hover:text-red-700 p-1.5 rounded-lg transition-colors cursor-pointer shadow-sm"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-slate-700">
+                  {filteredProducts.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="text-center py-12 text-slate-400 font-bold font-sans">
+                        No matching goods found under active search criteria.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    filteredProducts.map(prod => (
+                      <tr key={prod.id} className="hover:bg-slate-50 text-slate-705 transition-all">
+                        <td className="p-4 flex items-center gap-3">
+                          <img
+                            src={prod.imageUrl}
+                            alt={prod.name}
+                            className="h-10 w-10 object-cover rounded-lg border border-slate-150 shadow-sm"
+                          />
+                          <span className="text-slate-400 font-mono text-[10px]">{prod.id}</span>
+                        </td>
+                        <td className="p-4">
+                          <span className="text-slate-900 font-bold block">{prod.name}</span>
+                          <span className="text-[10px] text-slate-400 block max-w-[250px] truncate font-medium">{prod.description}</span>
+                        </td>
+                        <td className="p-4">
+                          <span className="bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-105 text-[10px] uppercase text-blue-605 font-bold tracking-wider">
+                            {prod.category}
+                          </span>
+                        </td>
+                        <td className="p-4 text-center">
+                          <span className="text-slate-900 font-bold font-sans">৳{prod.price.toLocaleString()}</span>
+                        </td>
+                        <td className="p-4 text-center font-sans">
+                          <span className={`font-bold ${prod.stock <= 20 ? 'text-red-500 font-extrabold animate-pulse' : 'text-slate-750'}`}>
+                            {prod.stock} Units
+                          </span>
+                        </td>
+                        <td className="p-4 text-center font-sans">
+                          <div className="flex items-center justify-center gap-1">
+                            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                            <span className="text-amber-500 font-extrabold">{prod.rating}</span>
+                            <span className="text-slate-400 font-medium">({prod.reviewsCount})</span>
+                          </div>
+                        </td>
+                        <td className="p-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => startEditProduct(prod)}
+                              className="bg-white border border-slate-205 text-blue-600 hover:bg-slate-50 p-1.5 rounded-lg transition-colors cursor-pointer shadow-sm"
+                            >
+                              <Edit className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteProduct(prod.id)}
+                              className="bg-white border border-slate-205 text-red-500 hover:text-red-700 p-1.5 rounded-lg transition-colors cursor-pointer shadow-sm"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Card view for mobile */}
+            <div className="md:hidden space-y-4 p-4">
+              {filteredProducts.length === 0 ? (
+                <div className="text-center py-12 text-slate-400 font-bold font-sans">
+                  No matching goods found under active search criteria.
+                </div>
+              ) : (
+                filteredProducts.map(prod => (
+                  <div key={prod.id} className="bg-slate-50/50 rounded-2xl border border-slate-100 p-4 space-y-3 hover:border-slate-200 transition-all shadow-sm hover:bg-slate-50">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={prod.imageUrl}
+                        alt={prod.name}
+                        className="h-12 w-12 object-cover rounded-lg border border-slate-150 shadow-sm flex-shrink-0"
+                      />
+                      <div className="flex-1">
+                        <span className="text-slate-900 font-bold block">{prod.name}</span>
+                        <span className="text-slate-400 font-mono text-[10px]">{prod.id}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-105 text-[10px] uppercase text-blue-605 font-bold tracking-wider">
+                        {prod.category}
+                      </span>
+                      <span className="text-slate-900 font-bold font-sans">৳{prod.price.toLocaleString()}</span>
+                      <span className={`font-bold ${prod.stock <= 20 ? 'text-red-500 font-extrabold animate-pulse' : 'text-slate-750'}`}>
+                        {prod.stock} Units
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                        <span className="text-amber-500 font-extrabold">{prod.rating}</span>
+                        <span className="text-slate-400 font-medium">({prod.reviewsCount})</span>
+                      </div>
+                    </div>
+
+                    <p className="text-[10px] text-slate-400 font-medium max-w-[300px] truncate">
+                      {prod.description}
+                    </p>
+
+                    <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-slate-100">
+                      <button
+                        onClick={() => startEditProduct(prod)}
+                        className="bg-white border border-slate-205 text-blue-600 hover:bg-slate-50 p-1.5 rounded-lg transition-colors cursor-pointer shadow-sm"
+                      >
+                        <Edit className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteProduct(prod.id)}
+                        className="bg-white border border-slate-205 text-red-500 hover:text-red-700 p-1.5 rounded-lg transition-colors cursor-pointer shadow-sm"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
         </div>
@@ -977,77 +1123,137 @@ export default function AdminDashboard({
         <div className="space-y-6" id="panel-customers">
           
           <div className="overflow-hidden bg-white border border-slate-100 rounded-[28px] shadow-2xl shadow-slate-200/40">
-            <table className="w-full text-left text-xs font-sans">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 text-[10px] uppercase font-bold tracking-wider font-sans">
-                  <th className="p-4">Customer ID & Date</th>
-                  <th className="p-4">Particular Identity Name</th>
-                  <th className="p-4">Contact email</th>
-                  <th className="p-4">Cell phone</th>
-                  <th className="p-4">Location (District)</th>
-                  <th className="p-4 text-center">Autosignup Status</th>
-                  <th className="p-4 text-right">Manage</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {filteredCustomers.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="text-center py-12 text-slate-400 font-semibold font-sans">
-                      No matching customer accounts found.
-                    </td>
+            {/* Table view for desktop */}
+            <div className="hidden md:block">
+              <table className="w-full text-left text-xs font-sans">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 text-[10px] uppercase font-bold tracking-wider font-sans">
+                    <th className="p-4">Customer ID & Date</th>
+                    <th className="p-4">Particular Identity Name</th>
+                    <th className="p-4">Contact email</th>
+                    <th className="p-4">Cell phone</th>
+                    <th className="p-4">Location (District)</th>
+                    <th className="p-4 text-center">Autosignup Status</th>
+                    <th className="p-4 text-right">Manage</th>
                   </tr>
-                ) : (
-                  filteredCustomers.map(cust => {
-                    const custOrders = orders.filter(o => o.userId === cust.uid);
-                    return (
-                      <tr key={cust.uid} className="hover:bg-slate-50 text-slate-700 transition-colors">
-                        <td className="p-4">
-                          <span className="text-slate-900 font-bold block">{cust.uid}</span>
-                          <span className="text-[10px] text-slate-400">{new Date(cust.createdAt).toLocaleDateString()}</span>
-                        </td>
-                        <td className="p-4">
-                          <strong className="text-slate-900 font-sans text-md font-bold block">{cust.name}</strong>
-                          <span className="text-[10px] text-slate-400 font-sans block font-semibold">Order Submissions: ({custOrders.length})</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-slate-650 flex items-center gap-1.5">
-                            <span>{cust.email}</span>
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-slate-900 font-bold">{cust.phone}</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-slate-800 flex items-center gap-1 font-bold">
-                            <MapPin className="h-3.5 w-3.5 text-blue-500" />
-                            <span>{cust.district}</span>
-                          </span>
-                          <p className="text-[10px] text-slate-400 max-w-[150px] truncate block mt-0.5" title={cust.address}>{cust.address}</p>
-                        </td>
-                        <td className="p-4 text-center font-sans">
-                          <span className={`inline-block text-[9px] font-bold px-2.5 py-0.5 rounded-full border ${
-                            cust.hasSetPassword 
-                              ? 'bg-blue-50 text-blue-600 border-blue-105' 
-                              : 'bg-slate-50 text-slate-450 border-slate-200'
-                          }`}>
-                            {cust.hasSetPassword ? 'CREDS RECLAIMED' : 'BACKSTAGE AUTO'}
-                          </span>
-                        </td>
-                        <td className="p-4 text-right cursor-pointer">
-                          <button
-                            onClick={() => handleDeleteCustomer(cust.uid)}
-                            className="bg-white border border-slate-205 text-red-500 hover:text-red-700 p-1.5 rounded-lg transition-colors cursor-pointer shadow-sm"
-                            title="Delete Customer profile details"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-slate-700">
+                  {filteredCustomers.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="text-center py-12 text-slate-400 font-semibold font-sans">
+                        No matching customer accounts found.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredCustomers.map(cust => {
+                      const custOrders = orders.filter(o => o.userId === cust.uid);
+                      return (
+                        <tr key={cust.uid} className="hover:bg-slate-50 text-slate-700 transition-colors">
+                          <td className="p-4">
+                            <span className="text-slate-900 font-bold block">{cust.uid}</span>
+                            <span className="text-[10px] text-slate-400">{new Date(cust.createdAt).toLocaleDateString()}</span>
+                          </td>
+                          <td className="p-4">
+                            <strong className="text-slate-900 font-sans text-md font-bold block">{cust.name}</strong>
+                            <span className="text-[10px] text-slate-400 font-sans block font-semibold">Order Submissions: ({custOrders.length})</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-slate-650 flex items-center gap-1.5">
+                              <span>{cust.email}</span>
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-slate-900 font-bold">{cust.phone}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-slate-800 flex items-center gap-1 font-bold">
+                              <MapPin className="h-3.5 w-3.5 text-blue-500" />
+                              <span>{cust.district}</span>
+                            </span>
+                            <p className="text-[10px] text-slate-400 max-w-[150px] truncate block mt-0.5" title={cust.address}>{cust.address}</p>
+                          </td>
+                          <td className="p-4 text-center font-sans">
+                            <span className={`inline-block text-[9px] font-bold px-2.5 py-0.5 rounded-full border ${
+                              cust.hasSetPassword 
+                                ? 'bg-blue-50 text-blue-600 border-blue-105' 
+                                : 'bg-slate-50 text-slate-450 border-slate-200'
+                            }`}>
+                              {cust.hasSetPassword ? 'CREDS RECLAIMED' : 'BACKSTAGE AUTO'}
+                            </span>
+                          </td>
+                          <td className="p-4 text-right cursor-pointer">
+                            <button
+                              onClick={() => handleDeleteCustomer(cust.uid)}
+                              className="bg-white border border-slate-205 text-red-500 hover:text-red-700 p-1.5 rounded-lg transition-colors cursor-pointer shadow-sm"
+                              title="Delete Customer profile details"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Card view for mobile */}
+            <div className="md:hidden space-y-4 p-4">
+              {filteredCustomers.length === 0 ? (
+                <div className="text-center py-12 text-slate-400 font-semibold font-sans">
+                  No matching customer accounts found.
+                </div>
+              ) : (
+                filteredCustomers.map(cust => {
+                  const custOrders = orders.filter(o => o.userId === cust.uid);
+                  return (
+                    <div key={cust.uid} className="bg-slate-50/50 rounded-2xl border border-slate-100 p-4 space-y-3 hover:border-slate-200 transition-all shadow-sm hover:bg-slate-50">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <span className="text-slate-900 font-bold block">{cust.name}</span>
+                          <span className="text-slate-400 font-mono text-[10px]">{cust.uid}</span>
+                        </div>
+                        <span className={`inline-block text-[9px] font-bold px-2.5 py-0.5 rounded-full border ${
+                          cust.hasSetPassword 
+                            ? 'bg-blue-50 text-blue-600 border-blue-105' 
+                            : 'bg-slate-50 text-slate-450 border-slate-200'
+                        }`}>
+                          {cust.hasSetPassword ? 'CREDS RECLAIMED' : 'BACKSTAGE AUTO'}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1">
+                        <span className="text-slate-650 text-xs flex items-center gap-1">
+                          <Mail className="h-3 w-3 text-blue-500" />
+                          {cust.email}
+                        </span>
+                        <span className="text-slate-900 font-bold text-xs">{cust.phone}</span>
+                      </div>
+
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-3.5 w-3.5 text-blue-500" />
+                          <span className="text-slate-800 font-bold text-xs">{cust.district}</span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 max-w-[300px] truncate block mt-0.5" title={cust.address}>{cust.address}</p>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                        <span className="text-[10px] text-slate-400 font-semibold">Order Submissions: ({custOrders.length})</span>
+                        <button
+                          onClick={() => handleDeleteCustomer(cust.uid)}
+                          className="bg-white border border-slate-205 text-red-500 hover:text-red-700 p-1.5 rounded-lg transition-colors cursor-pointer shadow-sm"
+                          title="Delete Customer profile details"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
 
         </div>

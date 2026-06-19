@@ -61,6 +61,35 @@ export default function App() {
     const handleUrlRouting = () => {
       const path = window.location.pathname;
       const hash = window.location.hash;
+      const searchParams = new URLSearchParams(window.location.search);
+
+      // Handle SSLCommerz returns
+      if (path === '/payment-success') {
+        const tranId = searchParams.get('tran_id');
+        const pendingOrder = localStorage.getItem('pending_order');
+        if (pendingOrder) {
+          const orderData = JSON.parse(pendingOrder);
+          if (orderData.tran_id === tranId) {
+            // Complete the order
+            const result = DB.placeOrder({
+              ...orderData,
+              paymentStatus: 'Paid'
+            });
+            handleOrderConfirmed(result.order, result.isNewUser);
+            localStorage.removeItem('pending_order');
+            // Clean URL
+            window.history.replaceState(null, '', '/');
+            return;
+          }
+        }
+      }
+
+      if (path === '/payment-fail' || path === '/payment-cancel') {
+        localStorage.removeItem('pending_order');
+        window.history.replaceState(null, '', '/');
+        alert(path === '/payment-fail' ? 'Payment failed. Please try again.' : 'Payment cancelled.');
+        return;
+      }
 
       // Determine page, subset parameters
       let targetPage = 'home';

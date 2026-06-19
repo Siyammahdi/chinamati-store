@@ -106,21 +106,22 @@ app.post('/api/ssl-success', (req, res) => {
   // In a real app, you would validate the payment here using the Validation API
   // and update your database.
   console.log('Payment Success for Tran ID:', tran_id, req.body);
-  res.redirect(`${FRONTEND_URL}/payment-success?tran_id=${tran_id}`);
+  // Use hash-based URL to avoid 404 on static hosting
+  res.redirect(`${FRONTEND_URL}/#/payment-success?tran_id=${tran_id}`);
 });
 
 // Fail Callback
 app.post('/api/ssl-fail', (req, res) => {
   const { tran_id } = req.query;
   console.log('Payment Failed for Tran ID:', tran_id, req.body);
-  res.redirect(`${FRONTEND_URL}/payment-fail?tran_id=${tran_id}`);
+  res.redirect(`${FRONTEND_URL}/#/payment-fail?tran_id=${tran_id}`);
 });
 
 // Cancel Callback
 app.post('/api/ssl-cancel', (req, res) => {
   const { tran_id } = req.query;
   console.log('Payment Cancelled for Tran ID:', tran_id, req.body);
-  res.redirect(`${FRONTEND_URL}/payment-cancel?tran_id=${tran_id}`);
+  res.redirect(`${FRONTEND_URL}/#/payment-cancel?tran_id=${tran_id}`);
 });
 
 // IPN Callback

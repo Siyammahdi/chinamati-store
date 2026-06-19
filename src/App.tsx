@@ -64,8 +64,23 @@ export default function App() {
       const searchParams = new URLSearchParams(window.location.search);
 
       // Handle SSLCommerz returns
-      if (path === '/payment-success') {
-        const tranId = searchParams.get('tran_id');
+      let sslPath = path;
+      let sslSearch = searchParams;
+      
+      // Check if path is in hash (for SPA fallback)
+      if (path === '/' && hash.startsWith('#')) {
+        const hashPath = hash.substring(1);
+        const hashQueryIndex = hashPath.indexOf('?');
+        if (hashQueryIndex !== -1) {
+          sslPath = hashPath.substring(0, hashQueryIndex);
+          sslSearch = new URLSearchParams(hashPath.substring(hashQueryIndex + 1));
+        } else {
+          sslPath = hashPath;
+        }
+      }
+      
+      if (sslPath === '/payment-success' || sslPath === 'payment-success') {
+        const tranId = sslSearch.get('tran_id');
         const pendingOrder = localStorage.getItem('pending_order');
         if (pendingOrder) {
           const orderData = JSON.parse(pendingOrder);
@@ -84,10 +99,10 @@ export default function App() {
         }
       }
 
-      if (path === '/payment-fail' || path === '/payment-cancel') {
+      if (sslPath === '/payment-fail' || sslPath === 'payment-fail' || sslPath === '/payment-cancel' || sslPath === 'payment-cancel') {
         localStorage.removeItem('pending_order');
         window.history.replaceState(null, '', '/');
-        alert(path === '/payment-fail' ? 'Payment failed. Please try again.' : 'Payment cancelled.');
+        alert(sslPath.includes('fail') ? 'Payment failed. Please try again.' : 'Payment cancelled.');
         return;
       }
 

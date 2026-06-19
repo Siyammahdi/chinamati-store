@@ -1680,103 +1680,186 @@ CREATE POLICY "Allow anon write on reviews" ON public.reviews FOR ALL USING (tru
 
           {/* Reviews Grid List */}
           <div className="overflow-hidden bg-white border border-slate-100 rounded-[28px] shadow-2xl shadow-slate-200/40">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs font-sans">
-                <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 text-[10px] uppercase font-bold tracking-wider font-sans">
-                    <th className="p-4.5">Reviewer & Store Location</th>
-                    <th className="p-4.5">Rating & Product</th>
-                    <th className="p-4.5">Commentary Text</th>
-                    <th className="p-4.5">Product Photos / Images Feed</th>
-                    <th className="p-4.5 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700">
-                  {filteredReviews.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="text-center py-16 text-slate-400 font-semibold font-sans">
-                        No active product reviews found. Try creating one!
-                      </td>
+            {/* Table view for desktop */}
+            <div className="hidden md:block">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs font-sans">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 text-[10px] uppercase font-bold tracking-wider font-sans">
+                      <th className="p-4.5">Reviewer & Store Location</th>
+                      <th className="p-4.5">Rating & Product</th>
+                      <th className="p-4.5">Commentary Text</th>
+                      <th className="p-4.5">Product Photos / Images Feed</th>
+                      <th className="p-4.5 text-right">Actions</th>
                     </tr>
-                  ) : (
-                    filteredReviews.map((rev) => {
-                      const matchedProd = products.find(p => p.id === rev.productId);
-                      return (
-                        <tr key={rev.id} className="hover:bg-slate-50/40 transition-colors" id={`review-row-${rev.id}`}>
-                          <td className="p-4.5">
-                            <div className="font-bold text-slate-900 text-sm">{rev.reviewer}</div>
-                            <div className="text-[10px] text-slate-450 font-mono mt-0.5 flex items-center gap-1">
-                              <MapPin className="h-3 w-3 text-slate-400" />
-                              <span>{rev.location || 'Bangladesh'}</span>
-                            </div>
-                            <div className="text-[9px] text-slate-400 font-mono mt-1 uppercase tracking-wider">{rev.date || 'Just now'}</div>
-                          </td>
-                          <td className="p-4.5">
-                            <div className="flex text-amber-400 mb-1.5">
-                              {[...Array(5)].map((_, i) => (
-                                <Star 
-                                  key={i} 
-                                  className={`h-3 w-3 ${i < rev.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`} 
-                                />
-                              ))}
-                            </div>
-                            <div className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 inline-block font-semibold">
-                              {matchedProd ? matchedProd.name : rev.productId}
-                            </div>
-                          </td>
-                          <td className="p-4.5 max-w-sm">
-                            <p className="text-slate-600 leading-relaxed text-xs break-all">{rev.text}</p>
-                          </td>
-                          <td className="p-4.5">
-                            {rev.imageUrls && rev.imageUrls.length > 0 ? (
-                              <div className="flex flex-wrap gap-1.5">
-                                {rev.imageUrls.map((url, i) => (
-                                  <a 
-                                    href={url} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer" 
-                                    key={i}
-                                    className="block h-10 w-10 rounded border border-slate-200 overflow-hidden bg-slate-50 group hover:border-blue-400 transition-all cursor-zoom-in"
-                                  >
-                                    <img 
-                                      src={url} 
-                                      alt="buyer attachment" 
-                                      referrerPolicy="no-referrer"
-                                      className="h-full w-full object-cover group-hover:scale-105 transition-transform" 
-                                    />
-                                  </a>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-slate-700">
+                    {filteredReviews.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="text-center py-16 text-slate-400 font-semibold font-sans">
+                          No active product reviews found. Try creating one!
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredReviews.map((rev) => {
+                        const matchedProd = products.find(p => p.id === rev.productId);
+                        return (
+                          <tr key={rev.id} className="hover:bg-slate-50/40 transition-colors" id={`review-row-${rev.id}`}>
+                            <td className="p-4.5">
+                              <div className="font-bold text-slate-900 text-sm">{rev.reviewer}</div>
+                              <div className="text-[10px] text-slate-450 font-mono mt-0.5 flex items-center gap-1">
+                                <MapPin className="h-3 w-3 text-slate-400" />
+                                <span>{rev.location || 'Bangladesh'}</span>
+                              </div>
+                              <div className="text-[9px] text-slate-400 font-mono mt-1 uppercase tracking-wider">{rev.date || 'Just now'}</div>
+                            </td>
+                            <td className="p-4.5">
+                              <div className="flex text-amber-400 mb-1.5">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star 
+                                    key={i} 
+                                    className={`h-3 w-3 ${i < rev.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`} 
+                                  />
                                 ))}
                               </div>
-                            ) : (
-                              <span className="text-[10px] text-slate-400 italic">No custom images</span>
-                            )}
-                          </td>
-                          <td className="p-4.5 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                onClick={() => handleEditReview(rev)}
-                                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer"
-                                title="Edit feedback info"
-                                id={`btn-edit-review-${rev.id}`}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteReview(rev.id)}
-                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
-                                title="Delete rating logs"
-                                id={`btn-delete-review-${rev.id}`}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+                              <div className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 inline-block font-semibold">
+                                {matchedProd ? matchedProd.name : rev.productId}
+                              </div>
+                            </td>
+                            <td className="p-4.5 max-w-sm">
+                              <p className="text-slate-600 leading-relaxed text-xs break-all">{rev.text}</p>
+                            </td>
+                            <td className="p-4.5">
+                              {rev.imageUrls && rev.imageUrls.length > 0 ? (
+                                <div className="flex flex-wrap gap-1.5">
+                                  {rev.imageUrls.map((url, i) => (
+                                    <a 
+                                      href={url} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer" 
+                                      key={i}
+                                      className="block h-10 w-10 rounded border border-slate-200 overflow-hidden bg-slate-50 group hover:border-blue-400 transition-all cursor-zoom-in"
+                                    >
+                                      <img 
+                                        src={url} 
+                                        alt="buyer attachment" 
+                                        referrerPolicy="no-referrer"
+                                        className="h-full w-full object-cover group-hover:scale-105 transition-transform" 
+                                      />
+                                    </a>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-[10px] text-slate-400 italic">No custom images</span>
+                              )}
+                            </td>
+                            <td className="p-4.5 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => handleEditReview(rev)}
+                                  className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer"
+                                  title="Edit feedback info"
+                                  id={`btn-edit-review-${rev.id}`}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteReview(rev.id)}
+                                  className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                                  title="Delete rating logs"
+                                  id={`btn-delete-review-${rev.id}`}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Card view for mobile */}
+            <div className="md:hidden space-y-4 p-4">
+              {filteredReviews.length === 0 ? (
+                <div className="text-center py-16 text-slate-400 font-semibold font-sans">
+                  No active product reviews found. Try creating one!
+                </div>
+              ) : (
+                filteredReviews.map((rev) => {
+                  const matchedProd = products.find(p => p.id === rev.productId);
+                  return (
+                    <div key={rev.id} className="bg-slate-50/50 rounded-2xl border border-slate-100 p-4 space-y-3 hover:border-slate-200 transition-all shadow-sm hover:bg-slate-50">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <div className="font-bold text-slate-900 text-sm">{rev.reviewer}</div>
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3 text-slate-400" />
+                            <span className="text-[10px] text-slate-450 font-mono">{rev.location || 'Bangladesh'}</span>
+                          </div>
+                          <div className="text-[9px] text-slate-400 font-mono uppercase tracking-wider">{rev.date || 'Just now'}</div>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleEditReview(rev)}
+                            className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer"
+                            title="Edit feedback info"
+                          >
+                            <Edit className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteReview(rev.id)}
+                            className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                            title="Delete rating logs"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex text-amber-400">
+                          {[...Array(5)].map((_, i) => (
+                            <Star 
+                              key={i} 
+                              className={`h-3 w-3 ${i < rev.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`} 
+                            />
+                          ))}
+                        </div>
+                        <div className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold">
+                          {matchedProd ? matchedProd.name : rev.productId}
+                        </div>
+                      </div>
+
+                      <p className="text-slate-600 leading-relaxed text-xs break-all">{rev.text}</p>
+
+                      {rev.imageUrls && rev.imageUrls.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100">
+                          {rev.imageUrls.map((url, i) => (
+                            <a 
+                              href={url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              key={i}
+                              className="block h-12 w-12 rounded border border-slate-200 overflow-hidden bg-slate-50 group hover:border-blue-400 transition-all cursor-zoom-in"
+                            >
+                              <img 
+                                src={url} 
+                                alt="buyer attachment" 
+                                referrerPolicy="no-referrer"
+                                className="h-full w-full object-cover group-hover:scale-105 transition-transform" 
+                              />
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
 

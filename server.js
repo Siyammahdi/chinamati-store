@@ -14,6 +14,8 @@ app.use(express.urlencoded({ extended: true }));
 const SSL_STORE_ID = process.env.SSL_STORE_ID;
 const SSL_STORE_PASSWORD = process.env.SSL_STORE_PASSWORD;
 const SSL_IS_SANDBOX = process.env.SSL_IS_SANDBOX === 'true';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://chinamati.com';
+const BACKEND_URL = process.env.BACKEND_URL || 'https://chinamati.com';
 
 const SSL_API_URL = SSL_IS_SANDBOX 
   ? 'https://sandbox.sslcommerz.com/gwprocess/v4/api.php' 
@@ -47,10 +49,10 @@ app.post('/api/ssl-request', async (req, res) => {
   formData.append('total_amount', total_amount);
   formData.append('currency', currency || 'BDT');
   formData.append('tran_id', tran_id);
-  formData.append('success_url', `http://localhost:${port}/api/ssl-success?tran_id=${tran_id}`);
-  formData.append('fail_url', `http://localhost:${port}/api/ssl-fail?tran_id=${tran_id}`);
-  formData.append('cancel_url', `http://localhost:${port}/api/ssl-cancel?tran_id=${tran_id}`);
-  formData.append('ipn_url', `http://localhost:${port}/api/ssl-ipn`);
+  formData.append('success_url', `${BACKEND_URL}/api/ssl-success?tran_id=${tran_id}`);
+  formData.append('fail_url', `${BACKEND_URL}/api/ssl-fail?tran_id=${tran_id}`);
+  formData.append('cancel_url', `${BACKEND_URL}/api/ssl-cancel?tran_id=${tran_id}`);
+  formData.append('ipn_url', `${BACKEND_URL}/api/ssl-ipn`);
   formData.append('cus_name', cus_name);
   formData.append('cus_email', cus_email);
   formData.append('cus_add1', cus_add1);
@@ -87,21 +89,21 @@ app.post('/api/ssl-success', (req, res) => {
   // In a real app, you would validate the payment here using the Validation API
   // and update your database.
   console.log('Payment Success for Tran ID:', tran_id, req.body);
-  res.redirect(`http://localhost:3000/payment-success?tran_id=${tran_id}`);
+  res.redirect(`${FRONTEND_URL}/payment-success?tran_id=${tran_id}`);
 });
 
 // Fail Callback
 app.post('/api/ssl-fail', (req, res) => {
   const { tran_id } = req.query;
   console.log('Payment Failed for Tran ID:', tran_id, req.body);
-  res.redirect(`http://localhost:3000/payment-fail?tran_id=${tran_id}`);
+  res.redirect(`${FRONTEND_URL}/payment-fail?tran_id=${tran_id}`);
 });
 
 // Cancel Callback
 app.post('/api/ssl-cancel', (req, res) => {
   const { tran_id } = req.query;
   console.log('Payment Cancelled for Tran ID:', tran_id, req.body);
-  res.redirect(`http://localhost:3000/payment-cancel?tran_id=${tran_id}`);
+  res.redirect(`${FRONTEND_URL}/payment-cancel?tran_id=${tran_id}`);
 });
 
 // IPN Callback

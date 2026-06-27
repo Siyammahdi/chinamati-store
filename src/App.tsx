@@ -295,7 +295,7 @@ export default function App() {
     : allProducts.filter(p => p.category === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-500/10 selection:text-blue-600">
+    <div className="min-h-screen bg-[#f0f2f8] text-slate-900 flex flex-col font-sans">
       
       {/* Prime Floating Header */}
       <Header
@@ -312,72 +312,78 @@ export default function App() {
           {successOrder ? (
             <motion.div
               key="order-success"
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="max-w-3xl mx-auto px-4 sm:px-6 py-10"
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="max-w-3xl mx-auto px-4 sm:px-6 py-12"
               id="order-success-screen"
             >
-              <div className="bg-white border border-slate-100 p-6 sm:p-8 rounded-[32px] space-y-6 text-center shadow-2xl shadow-slate-200/50 relative overflow-hidden animate-none">
-                <div className="absolute top-0 inset-x-0 h-1.5 bg-blue-600" />
-                
-                {/* Success Badge */}
-                <div className="h-16 w-16 bg-blue-50 text-blue-600 rounded-2xl mx-auto flex items-center justify-center border border-blue-100 mb-4 animate-none">
-                  <CheckCircle className="h-8 w-8" />
-                </div>
+              <div className="bg-white border border-slate-200/80 rounded-[36px] overflow-hidden shadow-[0_20px_80px_rgba(0,0,0,0.1)] relative">
+                {/* Top accent bar */}
+                <div className="h-1.5 bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 w-full" />
 
-                <div className="space-y-2">
-                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 font-sans">
-                    Thank You For Your Order!
-                  </h1>
-                  <p className="text-xs font-mono text-blue-600 uppercase tracking-widest bg-blue-50 py-1 px-3.5 inline-block rounded-full border border-blue-100 font-bold">
-                    ORDER REFERENCE ID: #{successOrder.id}
-                  </p>
-                  
-                  {/* Background enrollment disclosure */}
-                  {isSuccessNewUser ? (
-                    <div className="max-w-md mx-auto bg-slate-50 p-5 rounded-2xl border border-slate-205/60 mt-4 text-xs font-sans text-left space-y-1.5 shadow-sm">
-                      <span className="text-slate-800 font-bold flex items-center gap-1">
-                        <Sparkles className="h-3.5 w-3.5 text-blue-600 animate-pulse" />
-                        <span>Automatic Profile Created!</span>
-                      </span>
-                      <p className="text-slate-600 leading-normal">
-                        We have auto-registered you at <strong>{successOrder.userEmail}</strong>! You are already logged in. Head over to <em>My Dashboard</em> at any time to configure a login password or check shipment updates.
-                      </p>
+                <div className="p-6 sm:p-10 space-y-7 text-center">
+                  {/* Success icon */}
+                  <div className="relative inline-flex">
+                    <div className="h-20 w-20 bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 rounded-3xl flex items-center justify-center shadow-md shadow-emerald-500/10 mx-auto">
+                      <CheckCircle className="h-10 w-10 text-emerald-500" />
                     </div>
-                  ) : (
-                    <p className="text-slate-500 text-xs sm:text-sm max-w-md mx-auto font-sans">
-                      We've bound this purchase record to your active user account. Standard receipt delivery has been compiled below.
+                    {/* Pulse ring */}
+                    <span className="absolute inset-0 rounded-3xl border-2 border-emerald-300 animate-ping opacity-30 pointer-events-none" />
+                  </div>
+
+                  <div className="space-y-3">
+                    <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 font-sans">
+                      Order Confirmed! 🎉
+                    </h1>
+                    <p className="inline-flex items-center gap-2 text-[11px] font-mono text-blue-600 uppercase tracking-widest bg-blue-50 py-1.5 px-4 rounded-full border border-blue-100 font-bold">
+                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                      ORDER ID: #{successOrder.id}
                     </p>
-                  )}
-                </div>
 
-                {/* Printable invoice layout */}
-                <div className="text-left border-t border-slate-100 pt-6 mt-6">
-                  <h3 className="text-xs font-bold text-slate-400 font-sans uppercase tracking-wider mb-4">
-                    Official Smart Invoice Recipient Copy
-                  </h3>
-                  <InvoiceView order={successOrder} />
-                </div>
+                    {isSuccessNewUser ? (
+                      <div className="max-w-md mx-auto bg-gradient-to-br from-slate-50 to-blue-50/50 p-5 rounded-2xl border border-slate-200/80 mt-3 text-xs font-sans text-left space-y-1.5">
+                        <span className="text-slate-800 font-bold flex items-center gap-1.5">
+                          <Sparkles className="h-3.5 w-3.5 text-blue-600 animate-pulse" />
+                          <span>Automatic Profile Created!</span>
+                        </span>
+                        <p className="text-slate-600 leading-relaxed">
+                          We've auto-registered you at <strong className="text-slate-800">{successOrder.userEmail}</strong>. You're already logged in — visit <em>My Dashboard</em> to set a password or track your shipment.
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-slate-500 text-sm max-w-md mx-auto font-sans">
+                        Your purchase is bound to your account. Your invoice is ready below.
+                      </p>
+                    )}
+                  </div>
 
-                {/* Action routing triggers */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-slate-100">
-                  <button
-                    onClick={() => navigateTo('dashboard')}
-                    className="flex-grow py-3.5 px-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-800 rounded-full text-xs font-bold tracking-wide uppercase transition-all cursor-pointer flex items-center justify-center gap-2"
-                  >
-                    <span className="font-sans">Go To My User Panel</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => navigateTo('home')}
-                    className="flex-grow py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold tracking-wide uppercase rounded-full shadow-lg shadow-blue-500/10 hover:bg-blue-700 transition-all cursor-pointer"
-                  >
-                    Continue Shopping
-                  </button>
-                </div>
+                  {/* Invoice */}
+                  <div className="text-left border-t border-slate-100 pt-6">
+                    <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider mb-4">
+                      Official Invoice · Recipient Copy
+                    </p>
+                    <InvoiceView order={successOrder} />
+                  </div>
 
+                  {/* CTAs */}
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-100">
+                    <button
+                      onClick={() => navigateTo('dashboard')}
+                      className="flex-1 py-3.5 px-5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-2xl text-xs font-bold tracking-wide uppercase transition-all cursor-pointer flex items-center justify-center gap-2 focus:outline-none hover:border-slate-300"
+                    >
+                      <span>My Dashboard</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => navigateTo('home')}
+                      className="flex-1 py-3.5 px-5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-2xl text-xs font-bold tracking-wide uppercase shadow-md shadow-blue-500/20 hover:shadow-blue-500/30 transition-all cursor-pointer focus:outline-none"
+                    >
+                      Continue Shopping
+                    </button>
+                  </div>
+                </div>
               </div>
             </motion.div>
           ) : (
@@ -401,79 +407,60 @@ export default function App() {
 
                   {/* Main Goods storefront shelf */}
                   <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" id="store-catalog-grid">
-                    
-                    {/* Category Filter Header */}
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 border-b border-slate-200 pb-6">
+
+                    {/* Section Header */}
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
                       <div>
-                        <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2 font-sans italic">
-                          <Filter className="h-5 w-5 text-blue-600" />
-                          <span>Curated Catalog Catalogues</span>
+                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-100 mb-3">
+                          <ShoppingBag className="h-3 w-3 text-blue-500" />
+                          <span className="text-[10px] font-mono font-bold text-blue-600 uppercase tracking-[0.15em]">Our Products</span>
+                        </div>
+                        <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 font-sans leading-tight">
+                          Curated for
+                          <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent"> Smart Living</span>
                         </h2>
-                        <p className="text-xs text-slate-500 font-sans tracking-wide mt-1 uppercase font-semibold">
-                          Choose filter category to explore affordable high-utility items
+                        <p className="text-slate-500 text-xs sm:text-sm mt-1.5 font-sans">
+                          Explore affordable, high-utility items for every lifestyle
                         </p>
                       </div>
 
-                      {/* Filter controllers */}
-                      <div className="flex flex-wrap items-center gap-2 font-sans text-xs">
-                        <button
-                          onClick={() => setSelectedCategory('all')}
-                          className={`px-4.5 py-2 rounded-full border text-[11px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
-                            selectedCategory === 'all'
-                              ? 'bg-blue-50 border-blue-200 text-blue-600 shadow-sm'
-                              : 'bg-white border-slate-200 text-slate-500 hover:text-slate-800'
-                          }`}
-                        >
-                          All items
-                        </button>
-                        <button
-                          onClick={() => setSelectedCategory('gadgets')}
-                          className={`px-4.5 py-2 rounded-full border text-[11px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
-                            selectedCategory === 'gadgets'
-                              ? 'bg-blue-50 border-blue-200 text-blue-600 shadow-sm'
-                              : 'bg-white border-slate-200 text-slate-500 hover:text-slate-800'
-                          }`}
-                        >
-                          Utility Gadgets
-                        </button>
-                        <button
-                          onClick={() => setSelectedCategory('kitchen')}
-                          className={`px-4.5 py-2 rounded-full border text-[11px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
-                            selectedCategory === 'kitchen'
-                              ? 'bg-blue-50 border-blue-200 text-blue-600 shadow-sm'
-                              : 'bg-white border-slate-200 text-slate-500 hover:text-slate-800'
-                          }`}
-                        >
-                          Kitchen Gear
-                        </button>
-                        <button
-                          onClick={() => setSelectedCategory('home')}
-                          className={`px-4.5 py-2 rounded-full border text-[11px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
-                            selectedCategory === 'home'
-                              ? 'bg-blue-50 border-blue-200 text-blue-600 shadow-sm'
-                              : 'bg-white border-slate-200 text-slate-500 hover:text-slate-800'
-                          }`}
-                        >
-                          Smart Home
-                        </button>
+                      {/* Filter pills */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        {[
+                          { key: 'all', label: 'All Items' },
+                          { key: 'gadgets', label: 'Utility Gadgets' },
+                          { key: 'kitchen', label: 'Kitchen Gear' },
+                          { key: 'home', label: 'Smart Home' },
+                        ].map((cat) => (
+                          <button
+                            key={cat.key}
+                            onClick={() => setSelectedCategory(cat.key as any)}
+                            className={`px-4 py-2 rounded-xl border text-[11px] font-bold tracking-wide uppercase transition-all duration-200 cursor-pointer focus:outline-none ${
+                              selectedCategory === cat.key
+                                ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/20'
+                                : 'bg-white border-slate-200 text-slate-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50'
+                            }`}
+                          >
+                            {cat.label}
+                          </button>
+                        ))}
                       </div>
                     </div>
 
-                    {/* Products Shelf Items Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {/* Products Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                       {isInitialLoading ? (
                         Array.from({ length: 6 }).map((_, i) => (
-                          <div key={i} className="bg-white border border-slate-100/80 rounded-[28px] overflow-hidden shadow-sm animate-pulse flex flex-col h-[460px]">
-                            <div className="h-[260px] bg-slate-100 w-full" />
-                            <div className="p-6 flex-grow flex flex-col justify-between">
-                              <div className="space-y-3">
-                                <span className="h-3.5 bg-slate-100 rounded-full w-2/3 block" />
-                                <span className="h-2.5 bg-slate-100 rounded-full w-4/5 block" />
-                                <span className="h-2.5 bg-slate-100 rounded-full w-1/2 block" />
-                              </div>
-                              <div className="flex items-center justify-between mt-auto">
-                                <span className="h-5 bg-slate-100 rounded-full w-1/4 block" />
-                                <span className="h-10 bg-slate-100 rounded-xl w-1/3 block" />
+                          <div key={i} className="bg-white rounded-[28px] overflow-hidden border border-slate-200/80 flex flex-col" style={{ height: '460px' }}>
+                            <div className="animate-shimmer" style={{ paddingTop: '72%' }} />
+                            <div className="p-5 flex-grow flex flex-col gap-3">
+                              <div className="h-3 bg-slate-100 rounded-full w-2/3 animate-shimmer" />
+                              <div className="h-5 bg-slate-100 rounded-full w-4/5 animate-shimmer" />
+                              <div className="h-3 bg-slate-100 rounded-full w-full animate-shimmer" />
+                              <div className="h-3 bg-slate-100 rounded-full w-3/4 animate-shimmer" />
+                              <div className="mt-auto flex items-center justify-between">
+                                <div className="h-7 bg-slate-100 rounded-full w-1/4 animate-shimmer" />
+                                <div className="h-10 bg-slate-100 rounded-2xl w-1/3 animate-shimmer" />
                               </div>
                             </div>
                           </div>
@@ -612,119 +599,132 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {/* GLOBAL FOOTER BRAND */}
-      <footer className="bg-slate-950 border-t border-slate-850 py-12 mt-12 text-slate-400 text-xs font-sans text-left">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 border-b border-slate-800/80 pb-8 mb-8">
-            
-            {/* Column 1: Identity & About */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="text-md font-bold tracking-tight text-white uppercase font-sans">
-                  CHINA<span className="text-slate-400 font-light">MATI</span>
-                </span>
+      {/* GLOBAL FOOTER */}
+      <footer className="relative bg-slate-950 border-t border-slate-800/80 overflow-hidden">
+        {/* Subtle background glows */}
+        <div className="absolute top-0 left-1/4 w-96 h-32 bg-blue-600/8 rounded-full blur-[80px] pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-64 h-24 bg-violet-600/6 rounded-full blur-[60px] pointer-events-none" />
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-8">
+
+          {/* Top grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pb-10 mb-10 border-b border-slate-800/80">
+
+            {/* Brand */}
+            <div className="lg:col-span-1 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/20 flex-shrink-0">
+                  <ShoppingBag className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex flex-col leading-none">
+                  <span className="text-lg font-extrabold text-white tracking-tight">
+                    China<span className="text-blue-400">mati</span>
+                  </span>
+                  <span className="text-[9px] text-slate-500 uppercase tracking-[0.15em] font-mono">Premium Imports</span>
+                </div>
               </div>
-              <p className="text-slate-400 leading-relaxed text-[11px]">
+              <p className="text-slate-400 leading-relaxed text-xs font-sans">
                 Bangladesh's premier direct importer of space-saving home items, quality kitchen tools, and daily smart electronics.
               </p>
-              <button 
+              <button
                 type="button"
                 onClick={() => navigateTo('about')}
-                className="text-blue-400 hover:text-blue-300 font-bold transition-colors text-[11px] underline block text-left cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-blue-400 hover:text-blue-300 font-bold text-[11px] transition-colors cursor-pointer focus:outline-none group"
               >
-                About Us & Executive Board →
+                <span>About Us & Team</span>
+                <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
               </button>
             </div>
 
-            {/* Column 2: Guaranteed Delivery Times */}
-            <div className="space-y-3">
-              <span className="text-white font-bold block uppercase tracking-wider text-[11px]">GUARANTEED DELIVERY</span>
-              <div className="space-y-1.5 text-slate-400 text-[11px]">
-                <p className="flex items-center gap-2 text-slate-300">
-                  <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full" />
-                  <span><strong>Inside Dhaka:</strong> 2 Days (৳60 fee)</span>
-                </p>
-                <p className="flex items-center gap-2 text-slate-300">
-                  <span className="h-1.5 w-1.5 bg-amber-500 rounded-full" />
-                  <span><strong>Outside Dhaka:</strong> 3 Days (৳120 fee)</span>
-                </p>
+            {/* Delivery */}
+            <div className="space-y-4">
+              <span className="text-xs font-bold text-white uppercase tracking-[0.15em] font-mono">Guaranteed Delivery</span>
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-2.5 text-xs text-slate-300">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 flex-shrink-0 shadow-sm shadow-emerald-400/50" />
+                  <span><strong className="text-white">Inside Dhaka:</strong> 2 Days (৳60 fee)</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs text-slate-300">
+                  <span className="h-2 w-2 rounded-full bg-amber-400 flex-shrink-0 shadow-sm shadow-amber-400/50" />
+                  <span><strong className="text-white">Outside Dhaka:</strong> 3 Days (৳120 fee)</span>
+                </div>
               </div>
-              <button 
+              <button
                 type="button"
                 onClick={() => navigateTo('about', { section: 'delivery' })}
-                className="text-blue-400 hover:text-blue-300 font-bold transition-colors text-[11px] underline block text-left cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-blue-400 hover:text-blue-300 font-bold text-[11px] transition-colors cursor-pointer focus:outline-none group"
               >
-                Logistics & Speed Info →
+                <span>Logistics & Speed Info</span>
+                <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
               </button>
             </div>
 
-            {/* Column 3: Customer Policies */}
-            <div className="space-y-3">
-              <span className="text-white font-bold block uppercase tracking-wider text-[11px]">POLICIES & ASSURANCE</span>
-              <ul className="space-y-2 text-[11px]">
-                <li>
-                  <button 
-                    type="button"
-                    onClick={() => navigateTo('about', { section: 'refunds' })}
-                    className="hover:text-white transition-colors cursor-pointer text-left block"
-                  >
-                    Return & Refund Policy (7-10 Days)
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    type="button"
-                    onClick={() => navigateTo('about', { section: 'terms' })}
-                    className="hover:text-white transition-colors cursor-pointer text-left block"
-                  >
-                    Terms and Conditions
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    type="button"
-                    onClick={() => navigateTo('about', { section: 'privacy' })}
-                    className="hover:text-white transition-colors cursor-pointer text-left block"
-                  >
-                    Privacy Policy Statements
-                  </button>
-                </li>
+            {/* Policies */}
+            <div className="space-y-4">
+              <span className="text-xs font-bold text-white uppercase tracking-[0.15em] font-mono">Policies & Assurance</span>
+              <ul className="space-y-2.5">
+                {[
+                  { label: 'Return & Refund (7-10 Days)', section: 'refunds' },
+                  { label: 'Terms and Conditions', section: 'terms' },
+                  { label: 'Privacy Policy', section: 'privacy' },
+                ].map((item) => (
+                  <li key={item.section}>
+                    <button
+                      type="button"
+                      onClick={() => navigateTo('about', { section: item.section })}
+                      className="text-slate-400 hover:text-white text-xs transition-colors cursor-pointer focus:outline-none text-left font-sans"
+                    >
+                      {item.label}
+                    </button>
+                  </li>
+                ))}
               </ul>
             </div>
 
-            {/* Column 4: Authorized Merchant Details */}
-            <div className="space-y-3 text-left md:text-right">
-              <span className="text-white font-bold block uppercase tracking-wider text-[11px]">MERCHANT CREDENTIALS</span>
-              <div className="space-y-1.5 text-slate-400 text-[11px] leading-relaxed">
-                <span className="font-mono block text-white">License No: 003591 (Verified)</span>
-                <p><strong>HQ:</strong> House 32, Road 01, Aram Model Town, Mohammadpur, Dhaka</p>
-                <p><strong>Reg:</strong> Taltola College Para (07)</p>
-                <p><strong>Mail:</strong> mychinamati@gmail.com</p>
-                <p><strong>Cell:</strong> +880 1635483536</p>
-                <p className="text-slate-500">© 2026 chinamati.com. All Rights Reserved.</p>
+            {/* Merchant Info */}
+            <div className="space-y-4">
+              <span className="text-xs font-bold text-white uppercase tracking-[0.15em] font-mono">Merchant Details</span>
+              <div className="space-y-2 text-xs text-slate-400 font-sans leading-relaxed">
+                <p className="font-mono text-white text-[11px]">License No: 003591 ✓ Verified</p>
+                <p><span className="text-slate-500">HQ:</span> House 32, Road 01, Aram Model Town, Mohammadpur, Dhaka</p>
+                <p><span className="text-slate-500">Mail:</span> mychinamati@gmail.com</p>
+                <p><span className="text-slate-500">Cell:</span> +880 1635483536</p>
               </div>
             </div>
 
           </div>
 
-          {/* SSLCommerz Payment Gateway Branding Banner */}
-          <div className="bg-white rounded-2xl p-3 sm:p-4 mb-8 flex items-center justify-center shadow-sm overflow-hidden border border-slate-200/80">
-            <img 
-              src="https://res.cloudinary.com/dttbj6a0m/image/upload/v1781885350/Payment_Banner_Dec25-02_htoyqd.png" 
-              alt="SSLCommerz Secure Payment Partners" 
+          {/* Payment banner */}
+          <div className="bg-white rounded-2xl p-3 sm:p-4 mb-8 flex items-center justify-center overflow-hidden border border-slate-200">
+            <img
+              src="https://res.cloudinary.com/dttbj6a0m/image/upload/v1781885350/Payment_Banner_Dec25-02_htoyqd.png"
+              alt="SSLCommerz Secure Payment Partners"
               referrerPolicy="no-referrer"
               className="w-full h-auto object-contain"
             />
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 text-[11px] font-sans">
-            <span>Secured SSLCommerz Sandbox Transactions Shield • Licence 003591</span>
-            <div className="flex gap-4">
-              <span className="hover:text-white cursor-pointer transition-colors" onClick={() => setShowLoginModal(true)}>Confidential Admin Terminal Access</span>
-              <span>•</span>
-              <span className="hover:text-white cursor-pointer transition-colors" onClick={() => navigateTo('home')}>Home storefront</span>
+          {/* Bottom bar */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] font-sans text-slate-500">
+            <span>© 2026 chinamati.com · All Rights Reserved · Secured by SSLCommerz · Licence 003591</span>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setShowLoginModal(true)}
+                className="hover:text-slate-300 cursor-pointer transition-colors focus:outline-none"
+              >
+                Admin Access
+              </button>
+              <span className="text-slate-700">•</span>
+              <button
+                onClick={() => navigateTo('home')}
+                className="hover:text-slate-300 cursor-pointer transition-colors focus:outline-none"
+              >
+                Home
+              </button>
             </div>
           </div>
+
         </div>
       </footer>
 

@@ -1,4 +1,4 @@
-import { Star, Zap } from 'lucide-react';
+import { Star, Zap, Eye, ShoppingBag } from 'lucide-react';
 import { Product } from '../types';
 import { motion } from 'motion/react';
 
@@ -9,108 +9,148 @@ interface ProductCardProps {
   onViewDetails: (productId: string) => void;
 }
 
-export default function ProductCard({
-  product,
-  onOrderNow,
-  onViewDetails
-}: ProductCardProps) {
-  // Format Category name
-  const catNames: Record<string, string> = {
-    gadgets: 'Smart Tech',
-    kitchen: 'Smart Kitchen',
-    home: 'Smart Home'
-  };
+const categoryConfig: Record<string, { label: string; color: string; bg: string; border: string }> = {
+  gadgets: {
+    label: 'Smart Tech',
+    color: 'text-blue-600',
+    bg: 'bg-blue-50',
+    border: 'border-blue-100',
+  },
+  kitchen: {
+    label: 'Smart Kitchen',
+    color: 'text-amber-600',
+    bg: 'bg-amber-50',
+    border: 'border-amber-100',
+  },
+  home: {
+    label: 'Smart Home',
+    color: 'text-emerald-600',
+    bg: 'bg-emerald-50',
+    border: 'border-emerald-100',
+  },
+};
+
+export default function ProductCard({ product, onOrderNow, onViewDetails }: ProductCardProps) {
+  const cat = categoryConfig[product.category] ?? categoryConfig.gadgets;
+  const isLowStock = product.stock <= 20;
 
   return (
-    <motion.div 
-      whileHover={{ y: -6, scale: 1.01 }}
-      initial={{ opacity: 0, y: 15 }}
+    <motion.div
+      whileHover={{ y: -8 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-      className="group bg-white hover:bg-white border border-slate-100 hover:border-slate-200 rounded-3xl overflow-hidden shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-slate-200/70 transition-all duration-300 flex flex-col"
+      transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+      className="group relative bg-white rounded-[28px] overflow-hidden border border-slate-200/80 shadow-[0_2px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_60px_rgba(0,0,0,0.12)] hover:border-slate-300/80 transition-all duration-400 flex flex-col"
       id={`product-card-${product.id}`}
     >
-      {/* Product Image Stage */}
-      <div className="relative pt-[75%] overflow-hidden bg-slate-50 cursor-pointer" onClick={() => onViewDetails(product.id)}>
+      {/* ── Image Stage ── */}
+      <div
+        className="relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 cursor-pointer"
+        style={{ paddingTop: '72%' }}
+        onClick={() => onViewDetails(product.id)}
+      >
         <img
           src={product.imageUrl}
           alt={product.name}
           referrerPolicy="no-referrer"
-          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.07] transition-transform duration-700 ease-out"
         />
-        
-        {/* Category Tag */}
-        <span className="absolute top-3 left-3 bg-blue-50 text-blue-700 text-[10px] font-bold tracking-wider font-sans uppercase px-2.5 py-1 rounded-full shadow-sm">
-          {catNames[product.category]}
-        </span>
 
-        {/* Stock status helper */}
-        {product.stock <= 20 && (
-          <span className="absolute top-3 right-3 bg-red-50 text-red-600 text-[9px] font-semibold uppercase px-2 py-0.5 rounded-full border border-red-100">
-            Only {product.stock} Left
-          </span>
-        )}
-      </div>
+        {/* Gradient overlay at bottom of image */}
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-      {/* Meta Content */}
-      <div className="p-6 flex-grow flex flex-col justify-between">
-        <div>
-          {/* Mock Rating Section */}
-          <div className="flex items-center gap-1.5 mb-2.5">
-            <div className="flex text-amber-500">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-3 w-3 ${
-                    i < Math.floor(product.rating) 
-                      ? 'fill-amber-400 text-amber-400' 
-                      : 'text-slate-200'
-                  }`}
-                />
-              ))}
-            </div>
-            <span className="text-slate-700 text-xs font-bold font-sans">{product.rating}</span>
-            <span className="text-slate-400 text-xs font-sans">({product.reviewsCount} reviews)</span>
-          </div>
-
-          {/* Heading */}
-          <h3 
-            onClick={() => onViewDetails(product.id)}
-            className="text-slate-900 group-hover:text-blue-600 font-bold tracking-tight text-md mb-2 cursor-pointer line-clamp-1 transition-colors font-sans"
-          >
-            {product.name}
-          </h3>
-
-          {/* Description Snippet */}
-          <p className="text-slate-500 text-xs leading-relaxed mb-4 line-clamp-2 font-sans">
-            {product.description}
-          </p>
+        {/* Category chip */}
+        <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider uppercase ${cat.bg} ${cat.color} border ${cat.border} shadow-sm`}>
+          <span>{cat.label}</span>
         </div>
 
-        <div>
-          {/* Price tags & order CTA */}
-          <div className="flex items-end justify-between gap-2 border-t border-slate-100 pt-4 mt-1">
-            <div className="flex flex-col">
-              <span className="text-[10px] text-slate-400 font-medium font-sans uppercase tracking-widest">Price</span>
-              <span className="text-slate-900 text-xl font-black font-sans">
-                ৳{product.price.toLocaleString()}
-              </span>
-            </div>
+        {/* Low stock badge */}
+        {isLowStock && (
+          <div className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-red-500 text-white text-[9px] font-bold uppercase tracking-wide shadow-md shadow-red-500/30">
+            <span className="h-1 w-1 rounded-full bg-white animate-pulse" />
+            <span>Only {product.stock} Left</span>
+          </div>
+        )}
 
-            {/* DIRECT ORDER BTN */}
-            <div className="flex gap-2 w-[55%]">
-              <button
-                id={`btn-order-now-${product.id}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onOrderNow(product);
-                }}
-                className="w-full py-2.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-[11px] tracking-wider uppercase rounded-xl transition-all shadow-md shadow-blue-500/10 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5"
-              >
-                <Zap className="h-3.5 w-3.5 fill-white text-yellow-300" />
-                <span>ORDER NOW</span>
-              </button>
-            </div>
+        {/* Hover: Quick view overlay */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+          <div className="bg-white/90 backdrop-blur-sm text-slate-800 text-[11px] font-bold uppercase tracking-wider px-5 py-2.5 rounded-full shadow-xl flex items-center gap-2 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+            <Eye className="h-3.5 w-3.5" />
+            <span>Quick View</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Card Content ── */}
+      <div className="p-5 flex flex-col flex-grow">
+
+        {/* Rating */}
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-0.5">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                className={`h-3 w-3 ${
+                  i < Math.floor(product.rating)
+                    ? 'fill-amber-400 text-amber-400'
+                    : 'fill-slate-200 text-slate-200'
+                }`}
+              />
+            ))}
+          </div>
+          <span className="text-xs font-bold text-slate-800">{product.rating}</span>
+          <span className="text-xs text-slate-400">({product.reviewsCount})</span>
+        </div>
+
+        {/* Name */}
+        <h3
+          onClick={() => onViewDetails(product.id)}
+          className="text-slate-900 group-hover:text-blue-600 font-bold text-[15px] leading-snug mb-2 cursor-pointer line-clamp-1 transition-colors duration-200 font-sans"
+        >
+          {product.name}
+        </h3>
+
+        {/* Description */}
+        <p className="text-slate-500 text-xs leading-relaxed line-clamp-2 font-sans flex-grow">
+          {product.description}
+        </p>
+
+        {/* Divider */}
+        <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent my-4" />
+
+        {/* Price + CTA row */}
+        <div className="flex items-center justify-between gap-3">
+          {/* Price */}
+          <div className="flex flex-col">
+            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest font-mono">Best Price</span>
+            <span className="text-2xl font-black text-slate-900 leading-tight font-sans tracking-tight">
+              ৳{product.price.toLocaleString()}
+            </span>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-2">
+            {/* View details */}
+            <button
+              onClick={() => onViewDetails(product.id)}
+              className="h-10 w-10 flex items-center justify-center rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 transition-all cursor-pointer focus:outline-none flex-shrink-0"
+              title="View details"
+            >
+              <ShoppingBag className="h-4 w-4" />
+            </button>
+
+            {/* Order Now */}
+            <button
+              id={`btn-order-now-${product.id}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onOrderNow(product);
+              }}
+              className="flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold text-[11px] tracking-wider uppercase rounded-2xl shadow-md shadow-blue-500/20 hover:shadow-blue-500/30 active:scale-[0.97] transition-all cursor-pointer focus:outline-none"
+            >
+              <Zap className="h-3.5 w-3.5 fill-yellow-300 text-yellow-300 flex-shrink-0" />
+              <span>Order</span>
+            </button>
           </div>
         </div>
       </div>
